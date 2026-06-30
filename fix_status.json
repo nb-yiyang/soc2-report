@@ -60,10 +60,10 @@
   "note": ""
  },
  "SEC-011": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-06-29",
+  "commit": "d1674251",
+  "note": "Deleted APIInvokeLogAspect entirely (it existed only to dump request/response bodies, leaking JWT/reset-token/PII to logs). It was ad-hoc, scoped to just 5 consumer controllers, fired only on success (@AfterReturning - no failures/status), and carried a no-op @Around. No code referenced it. Uniform request/access logging + auth-failure monitoring should be handled by a real access log and the SEC-018/019 work, not this aspect."
  },
  "SEC-012": {
   "status": "Open",
