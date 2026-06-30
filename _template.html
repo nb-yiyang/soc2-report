@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SOC 2 Readiness — Code Security Assessment</title>
+<style>
+  :root{
+    --bg:#0f172a; --bg2:#1e293b; --panel:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --line:#e2e8f0; --soft:#f8fafc; --accent:#2563eb; --accent2:#1d4ed8;
+    --crit:#b91c1c; --crit-bg:#fef2f2; --crit-bd:#fecaca;
+    --high:#c2410c; --high-bg:#fff7ed; --high-bd:#fed7aa;
+    --med:#b45309; --med-bg:#fffbeb; --med-bd:#fde68a;
+    --low:#0369a1; --low-bg:#f0f9ff; --low-bd:#bae6fd;
+    --info:#475569; --info-bg:#f8fafc; --info-bd:#e2e8f0;
+    --ok:#15803d; --ok-bg:#f0fdf4; --gap:#b91c1c; --partial:#b45309;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+    color:var(--ink); background:#eef2f7; line-height:1.6; font-size:15px;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 20px 80px;}
+  /* Header */
+  header.hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%); color:#fff; padding:46px 0 40px; margin-bottom:34px;
+    box-shadow:0 6px 24px rgba(15,23,42,.18);}
+  .hero .wrap{padding-bottom:0}
+  .brandrow{display:flex; justify-content:space-between; align-items:flex-start; gap:18px;}
+  .eyebrow{letter-spacing:.18em; text-transform:uppercase; font-size:12px; font-weight:700; color:#93c5fd; margin:0 0 8px;}
+  h1.title{font-size:30px; line-height:1.25; margin:0 0 14px; font-weight:800; max-width:760px;}
+  .metaline{font-size:13px; color:#cbd5e1; display:flex; flex-wrap:wrap; gap:6px 22px;}
+  .metaline b{color:#fff; font-weight:600}
+  .langbtn{background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.35); padding:9px 16px; border-radius:999px;
+    font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition:.15s;}
+  .langbtn:hover{background:rgba(255,255,255,.24)}
+  /* posture banner */
+  .posture{display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:16px; margin:-22px 0 30px;}
+  @media(max-width:780px){.posture{grid-template-columns:1fr}}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 22px; box-shadow:0 2px 10px rgba(15,23,42,.05);}
+  .card h3{margin:0 0 6px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:700;}
+  .bigval{font-size:24px; font-weight:800; line-height:1.2}
+  .riskpill{display:inline-block; padding:5px 14px; border-radius:999px; font-weight:800; font-size:18px}
+  .summary-text{font-size:15px; color:#334155}
+  /* sections */
+  section{margin:34px 0}
+  h2.sec{font-size:20px; font-weight:800; margin:0 0 16px; padding-bottom:10px; border-bottom:2px solid var(--line); display:flex; align-items:center; gap:10px}
+  h2.sec .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+  /* severity stat cards */
+  .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}
+  @media(max-width:780px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{border-radius:12px; padding:16px; text-align:center; border:1px solid}
+  .stat .n{font-size:30px; font-weight:800; line-height:1}
+  .stat .l{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-top:6px}
+  .s-crit{background:var(--crit-bg); border-color:var(--crit-bd); color:var(--crit)}
+  .s-high{background:var(--high-bg); border-color:var(--high-bd); color:var(--high)}
+  .s-med{background:var(--med-bg); border-color:var(--med-bd); color:var(--med)}
+  .s-low{background:var(--low-bg); border-color:var(--low-bd); color:var(--low)}
+  .s-info{background:var(--info-bg); border-color:var(--info-bd); color:var(--info)}
+  /* table */
+  table{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:14px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{background:var(--soft); font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .crit-code{font-weight:700; white-space:nowrap}
+  .st{display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700}
+  .st-Gap{background:var(--crit-bg); color:var(--gap); border:1px solid var(--crit-bd)}
+  .st-Partial{background:var(--med-bg); color:var(--partial); border:1px solid var(--med-bd)}
+  .st-Satisfied{background:var(--ok-bg); color:var(--ok); border:1px solid #bbf7d0}
+  .st-NA{background:var(--info-bg); color:var(--info); border:1px solid var(--info-bd)}
+  /* standard coverage */
+  .covnarr{font-size:15px; color:#334155; margin:0 0 16px}
+  .covsum{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px}
+  @media(max-width:780px){.covsum{grid-template-columns:repeat(2,1fr)}}
+  .covstat{border-radius:12px; padding:14px; text-align:center; border:1px solid}
+  .covstat .n{font-size:26px; font-weight:800; line-height:1}
+  .covstat .l{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-top:5px}
+  .cs-Implemented{background:var(--ok-bg); border-color:#bbf7d0; color:var(--ok)}
+  .cs-Partial{background:var(--med-bg); border-color:var(--med-bd); color:var(--med)}
+  .cs-Missing{background:var(--crit-bg); border-color:var(--crit-bd); color:var(--crit)}
+  .cs-Process{background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8}
+  .cov-pill{display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap}
+  .cov-Implemented{background:var(--ok-bg); color:var(--ok); border:1px solid #bbf7d0}
+  .cov-Partial{background:var(--med-bg); color:var(--med); border:1px solid var(--med-bd)}
+  .cov-Missing{background:var(--crit-bg); color:var(--crit); border:1px solid var(--crit-bd)}
+  .cov-Process{background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe}
+  tr.arearow td{background:#0f172a; color:#fff; font-weight:700; font-size:13px; letter-spacing:.02em}
+  .relchip{display:inline-block; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11px; background:#f5f3ff; border:1px solid #ddd6fe; color:#6d28d9; padding:1px 6px; border-radius:5px; margin:2px 3px 0 0}
+  /* strengths */
+  .strengths{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media(max-width:780px){.strengths{grid-template-columns:1fr}}
+  .strength{background:var(--ok-bg); border:1px solid #bbf7d0; border-radius:10px; padding:12px 14px; font-size:14px; color:#14532d; display:flex; gap:10px}
+  .strength .ic{color:var(--ok); font-weight:800}
+  /* filters */
+  .filters{display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin-bottom:16px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 16px}
+  .filters label{font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-right:6px}
+  .filters select{padding:7px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px; background:#fff; color:var(--ink)}
+  .countshown{margin-left:auto; font-size:13px; color:var(--muted)}
+  /* finding cards */
+  .finding{background:#fff; border:1px solid var(--line); border-left-width:5px; border-radius:12px; margin-bottom:14px; overflow:hidden; box-shadow:0 1px 4px rgba(15,23,42,.04)}
+  .finding.sev-Critical{border-left-color:var(--crit)} .finding.sev-High{border-left-color:var(--high)}
+  .finding.sev-Medium{border-left-color:var(--med)} .finding.sev-Low{border-left-color:var(--low)} .finding.sev-Info{border-left-color:var(--info)}
+  .fhead{display:flex; align-items:flex-start; gap:12px; padding:15px 18px; cursor:pointer}
+  .fhead:hover{background:var(--soft)}
+  .badge{display:inline-block; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap}
+  .b-Critical{background:var(--crit-bg); color:var(--crit); border:1px solid var(--crit-bd)}
+  .b-High{background:var(--high-bg); color:var(--high); border:1px solid var(--high-bd)}
+  .b-Medium{background:var(--med-bg); color:var(--med); border:1px solid var(--med-bd)}
+  .b-Low{background:var(--low-bg); color:var(--low); border:1px solid var(--low-bd)}
+  .b-Info{background:var(--info-bg); color:var(--info); border:1px solid var(--info-bd)}
+  .fid{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; color:var(--muted); font-weight:700}
+  .ftitle{font-weight:700; font-size:15.5px; flex:1; min-width:0}
+  .ftags{display:flex; gap:6px; flex-wrap:wrap; margin-top:7px}
+  .tag{font-size:11px; padding:2px 8px; border-radius:6px; background:var(--soft); border:1px solid var(--line); color:var(--muted); font-weight:600}
+  .tag.comp{background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8}
+  .tag.crit{background:#f5f3ff; border-color:#ddd6fe; color:#6d28d9}
+  .chev{transition:.2s; color:var(--muted); font-size:14px; margin-top:3px}
+  .finding.open .chev{transform:rotate(90deg)}
+  .fbody{display:none; padding:4px 18px 20px; border-top:1px solid var(--line)}
+  .finding.open .fbody{display:block}
+  .fbody h4{margin:16px 0 5px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .fbody p{margin:0; color:#334155}
+  .filepath{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; background:var(--soft); border:1px solid var(--line); padding:7px 10px; border-radius:8px; color:#0f172a; word-break:break-all}
+  pre.evi{background:#0f172a; color:#e2e8f0; padding:13px 15px; border-radius:8px; overflow:auto; font-size:12.5px; line-height:1.5; margin:6px 0 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; word-break:break-word}
+  .remediation{background:var(--ok-bg); border:1px solid #bbf7d0; border-radius:8px; padding:11px 14px; color:#14532d; margin-top:4px}
+  .effort{font-size:12px; font-weight:700}
+  .estbox{background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; padding:11px 14px; color:#1e1b4b; margin-top:4px}
+  .estbox .estmeta{margin:0 0 6px; font-weight:700; font-size:13px}
+  .estbox .estmeta .pill{display:inline-block; background:#4f46e5; color:#fff; border-radius:6px; padding:1px 8px; margin-right:6px; font-size:12px}
+  .estbox .estmeta .gp{display:inline-block; background:#fff; border:1px solid #c7d2fe; color:#3730a3; border-radius:6px; padding:1px 8px; margin-right:6px; font-size:12px; font-weight:600}
+  .estbox .estmeta .cf{display:inline-block; color:#3730a3; font-size:12px; font-weight:600}
+  .tag.est{background:#eef2ff; border-color:#c7d2fe; color:#3730a3; font-weight:700}
+  .estbox .estops-h{margin:9px 0 3px; font-weight:700; font-size:12px; color:#7c2d12}
+  .estbox ul.estops{margin:0; padding-left:18px}
+  .estbox ul.estops li{color:#7c2d12; font-size:13px; margin:2px 0}
+  .estsum-note{color:var(--muted); font-size:14px; margin:0 0 14px}
+  .estsum-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:18px}
+  .estsum-card{background:#eef2ff; border:1px solid #c7d2fe; border-radius:12px; padding:16px}
+  .estsum-card .n{font-size:24px; font-weight:800; color:#3730a3}
+  .estsum-card .l{font-size:12px; color:#4338ca; margin-top:3px; text-transform:uppercase; letter-spacing:.04em}
+  .estsum-tables{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px}
+  .estsum-tables table{margin:0}
+  .estsum-tables h4{margin:0 0 7px; font-size:13px; color:#1e293b}
+  .estsum-tables td.tr,.estsum-tables th.tr{text-align:right}
+  .estsum-tables tr.totrow td{font-weight:800; border-top:2px solid var(--line)}
+  .bigtask{background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:10px; padding:13px 16px; margin-bottom:10px}
+  .bigtask .bt-head{display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:5px}
+  .bigtask a.bt-id{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:700; color:var(--accent); text-decoration:none}
+  .bigtask a.bt-id:hover{text-decoration:underline}
+  .bigtask .bt-est{background:#4f46e5; color:#fff; border-radius:6px; padding:1px 9px; font-size:12px; font-weight:700}
+  .bigtask .bt-tag{background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:1px 8px; font-size:12px; color:#475569}
+  .bigtask .bt-title{font-weight:600; color:#0f172a; font-size:14.5px; margin:2px 0 4px}
+  .bigtask .bt-reason{color:#334155; font-size:13.5px; margin:0}
+  .fixbadge{display:inline-block; border-radius:6px; padding:2px 9px; font-size:11.5px; font-weight:800; letter-spacing:.02em}
+  .fix-Fixed{background:#dcfce7; color:#166534; border:1px solid #86efac}
+  .fix-InProgress{background:#fef9c3; color:#854d0e; border:1px solid #fde047}
+  .finding.is-fixed{opacity:.72}
+  .finding.is-fixed .ftitle{text-decoration:line-through; text-decoration-color:#94a3b8}
+  .fixinfo{background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:9px 13px; color:#166534; font-size:13px; margin-top:4px}
+  .devops-h{color:#7c2d12}
+  .devops-tbl td.st{white-space:nowrap}
+  /* roadmap */
+  .road{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  @media(max-width:780px){.road{grid-template-columns:1fr}}
+  .phase{background:#fff; border:1px solid var(--line); border-top:4px solid var(--accent); border-radius:12px; padding:18px}
+  .phase:nth-child(1){border-top-color:var(--crit)}
+  .phase:nth-child(2){border-top-color:var(--high)}
+  .phase:nth-child(3){border-top-color:var(--low)}
+  .phase h3{margin:0 0 2px; font-size:16px; font-weight:800}
+  .phase .tf{font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px}
+  .phase ul{margin:0; padding-left:18px; font-size:13.5px; color:#334155}
+  .phase li{margin-bottom:7px}
+  /* footer / disclaimer */
+  .disc{background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; font-size:13px; color:var(--muted)}
+  .disc h4{margin:0 0 6px; color:var(--ink); font-size:13px; text-transform:uppercase; letter-spacing:.05em}
+  .disc p{margin:0 0 10px}
+  footer.foot{text-align:center; color:var(--muted); font-size:12px; margin-top:30px; padding-top:18px; border-top:1px solid var(--line)}
+  @media print{
+    body{background:#fff} header.hero{box-shadow:none} .langbtn,.filters{display:none}
+    .finding .fbody{display:block!important} .chev{display:none} .card,.finding,.phase,table{box-shadow:none}
+    .finding{break-inside:avoid} section{break-inside:avoid-page}
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="brandrow">
+      <div>
+        <p class="eyebrow" id="ui-eyebrow">Security &amp; Compliance Assessment</p>
+        <h1 class="title" id="r-title">—</h1>
+        <div class="metaline">
+          <span><b id="ui-generated">Generated</b>: <span id="r-date">—</span></span>
+          <span><b id="ui-scope">Scope</b>: <span id="r-scope">—</span></span>
+        </div>
+      </div>
+      <button class="langbtn" id="langToggle" onclick="toggleLang()">中文</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- posture -->
+  <div class="posture">
+    <div class="card">
+      <h3 id="ui-exec">Executive Summary</h3>
+      <p class="summary-text" id="r-summary">—</p>
+    </div>
+    <div class="card">
+      <h3 id="ui-rating">Readiness Rating</h3>
+      <div class="bigval" id="r-rating">—</div>
+    </div>
+    <div class="card">
+      <h3 id="ui-risk">Overall Risk</h3>
+      <div><span class="riskpill" id="r-risk">—</span></div>
+    </div>
+  </div>
+
+  <!-- severity stats -->
+  <section>
+    <h2 class="sec"><span class="dot"></span><span id="ui-sevdist">Findings by Severity</span></h2>
+    <div class="stats" id="r-stats"></div>
+  </section>
+
+  <!-- code-change effort estimate summary -->
+  <section id="sec-estsum">
+    <h2 class="sec"><span class="dot"></span><span id="ui-estsum">Code-Change Effort — Estimate Summary</span></h2>
+    <p class="estsum-note" id="r-estsum-note"></p>
+    <div class="estsum-cards" id="r-estsum-head"></div>
+    <div class="estsum-tables" id="r-estsum-tables"></div>
+  </section>
+
+  <!-- tasks over 1 day -->
+  <section id="sec-bigtasks">
+    <h2 class="sec"><span class="dot"></span><span id="ui-bigtasks">Tasks Over 1 Day (for manual review)</span></h2>
+    <p class="estsum-note" id="r-bigtasks-note"></p>
+    <div id="r-bigtasks"></div>
+  </section>
+
+  <!-- SOC2 matrix -->
+  <section>
+    <h2 class="sec"><span class="dot"></span><span id="ui-matrix">SOC 2 Trust Services Criteria Coverage</span></h2>
+    <table>
+      <thead><tr>
+        <th id="ui-criteria">Criteria</th><th id="ui-name">Name</th><th id="ui-status">Status</th><th id="ui-notes">Notes</th>
+      </tr></thead>
+      <tbody id="r-matrix"></tbody>
+    </table>
+  </section>
+
+  <!-- standard coverage (NetBrain SOC 2 checklist) -->
+  <section id="sec-coverage">
+    <h2 class="sec"><span class="dot"></span><span id="ui-coverage">NetBrain SOC 2 Standard — Control Coverage</span></h2>
+    <p class="covnarr" id="r-cov-narr"></p>
+    <div class="covsum" id="r-cov-sum"></div>
+    <table>
+      <thead><tr>
+        <th id="ui-cov-control">Control</th><th id="ui-cov-crit">Criteria</th><th id="ui-cov-status">Status</th><th id="ui-cov-notes">Notes</th>
+      </tr></thead>
+      <tbody id="r-coverage"></tbody>
+    </table>
+  </section>
+
+  <!-- strengths -->
+  <section>
+    <h2 class="sec"><span class="dot"></span><span id="ui-strengths">Existing Strengths / Positive Controls</span></h2>
+    <div class="strengths" id="r-strengths"></div>
+  </section>
+
+  <!-- findings -->
+  <section>
+    <h2 class="sec"><span class="dot"></span><span id="ui-findings">Detailed Findings</span></h2>
+    <div class="filters">
+      <div><label id="ui-fsev">Severity</label>
+        <select id="fSev" onchange="renderFindings()"><option value="">—</option></select></div>
+      <div><label id="ui-fcomp">Component</label>
+        <select id="fComp" onchange="renderFindings()"><option value="">—</option></select></div>
+      <div id="grp-tscc"><label id="ui-ftscc">TSC Criteria</label>
+        <select id="fTscc" onchange="renderFindings()"><option value="">—</option></select></div>
+      <div id="grp-cc"><label id="ui-fcc">Control Coverage</label>
+        <select id="fCc" onchange="renderFindings()"><option value="">—</option></select></div>
+      <div><label id="ui-fstatus">Status</label>
+        <select id="fStatus" onchange="renderFindings()"><option value="">—</option></select></div>
+      <span class="countshown" id="r-count"></span>
+    </div>
+    <div id="r-findings"></div>
+  </section>
+
+  <!-- DevOps / non-code backlog -->
+  <section id="sec-devops">
+    <h2 class="sec"><span class="dot"></span><span id="ui-devops">DevOps / Non-Code Backlog</span></h2>
+    <p class="estsum-note" id="r-devops-note"></p>
+    <table class="devops-tbl">
+      <thead><tr>
+        <th id="ui-dv-finding">Finding</th><th id="ui-dv-status">Code fix</th><th id="ui-dv-task">Non-code task (DevOps / infra / policy)</th>
+      </tr></thead>
+      <tbody id="r-devops"></tbody>
+    </table>
+  </section>
+
+  <!-- roadmap -->
+  <section>
+    <h2 class="sec"><span class="dot"></span><span id="ui-roadmap">Remediation Roadmap</span></h2>
+    <div class="road" id="r-road"></div>
+  </section>
+
+  <!-- methodology + disclaimer -->
+  <section>
+    <div class="disc">
+      <h4 id="ui-method">Methodology</h4>
+      <p id="r-method">—</p>
+      <h4 id="ui-disc">Disclaimer</h4>
+      <p id="r-disc">—</p>
+    </div>
+    <footer class="foot" id="r-foot">—</footer>
+  </section>
+</div>
+
+<script>
+const REPORT_DATA = %%REPORT_DATA%%;
+let LANG = "%%DEFAULT_LANG%%";
+
+const UI = {
+  en:{ eyebrow:"Security & Compliance Assessment", generated:"Generated", scope:"Scope", exec:"Executive Summary",
+    rating:"Readiness Rating", risk:"Overall Risk", sevdist:"Findings by Severity", matrix:"SOC 2 Trust Services Criteria Coverage",
+    estsum:"Code-Change Effort — Estimate Summary", bigtasks:"Tasks Over 1 Day (for manual review)",
+    criteria:"Criteria", name:"Name", status:"Status", notes:"Notes", strengths:"Existing Strengths / Positive Controls",
+    findings:"Detailed Findings", fsev:"Severity", fcomp:"Component", ftscc:"TSC Criteria", fcc:"Control Coverage", fstatus:"Status", roadmap:"Remediation Roadmap", method:"Methodology",
+    devops:"DevOps / Non-Code Backlog", dvFinding:"Finding", dvStatus:"Code fix", dvTask:"Non-code task (DevOps / infra / policy)",
+    fix:{Open:"Open","In Progress":"In Progress",Fixed:"Fixed"}, fixedOn:"Fixed", commit:"commit",
+    disc:"Disclaimer", all:"All", toggle:"中文",
+    coverage:"NetBrain SOC 2 Standard — Control Coverage", covControl:"Control", covStatus:"Status", covNotes:"Notes / Assessment", covRelated:"Related",
+    cov:{Implemented:"Implemented",Partial:"Partial",Missing:"Missing",Process:"Process / Org"},
+    sev:{Critical:"Critical",High:"High",Medium:"Medium",Low:"Low",Info:"Info"},
+    lbl:{impact:"Impact",remediation:"Remediation",evidence:"Evidence",location:"Location",effort:"Remediation Effort",criteria:"SOC 2 Criteria",description:"Description",estimate:"Code est.",estimateFull:"Code-Change Estimate",estGroup:"Work group",estConf:"Confidence",estReason:"Estimate rationale",estOps:"DevOps / non-code tasks (handled separately, not in the code estimate)"},
+    shown:function(n,t){return n+" of "+t+" findings shown";} },
+  zh:{ eyebrow:"安全与合规评估", generated:"生成时间", scope:"评估范围", exec:"执行摘要",
+    rating:"就绪度评级", risk:"整体风险", sevdist:"按严重程度分布", matrix:"SOC 2 信任服务标准覆盖情况",
+    estsum:"代码改动工时 — 估算汇总", bigtasks:"超过 1 天的任务（重点审阅）",
+    criteria:"标准", name:"名称", status:"状态", notes:"说明", strengths:"现有优势 / 已具备的安全控制",
+    findings:"详细问题清单", fsev:"严重程度", fcomp:"组件", ftscc:"信任服务标准 (TSC)", fcc:"控制项覆盖", fstatus:"状态", roadmap:"整改路线图", method:"评估方法",
+    devops:"DevOps / 非代码待办", dvFinding:"问题", dvStatus:"代码修复", dvTask:"非代码任务（DevOps / 基础设施 / 策略）",
+    fix:{Open:"待处理","In Progress":"进行中",Fixed:"已修复"}, fixedOn:"已修复", commit:"提交",
+    disc:"免责声明", all:"全部", toggle:"EN",
+    coverage:"NetBrain SOC 2 标准 — 控制项覆盖情况", covControl:"控制项", covStatus:"状态", covNotes:"评估说明", covRelated:"相关",
+    cov:{Implemented:"已实现",Partial:"部分实现",Missing:"缺失",Process:"流程/组织"},
+    sev:{Critical:"严重",High:"高",Medium:"中",Low:"低",Info:"提示"},
+    lbl:{impact:"影响",remediation:"整改建议",evidence:"证据",location:"位置",effort:"整改工作量",criteria:"SOC 2 标准",description:"问题描述",estimate:"编码估算",estimateFull:"代码改动估算",estGroup:"工作分组",estConf:"置信度",estReason:"估算依据",estOps:"DevOps / 非代码任务（单独处理，不计入编码估算）"},
+    shown:function(n,t){return "显示 "+n+" / "+t+" 条问题";} },
+};
+const STATUS_LABEL = { en:{Gap:"Gap",Partial:"Partial",Satisfied:"Satisfied","N/A":"N/A"},
+  zh:{Gap:"缺失",Partial:"部分满足",Satisfied:"已满足","N/A":"不适用"} };
+const EFFORT_LABEL = { en:{Low:"Low",Medium:"Medium",High:"High"}, zh:{Low:"低",Medium:"中",High:"高"} };
+const FIX_CLASS = { "Fixed":"fix-Fixed", "In Progress":"fix-InProgress" };
+const RISK_COLOR = {Critical:"var(--crit)",High:"var(--high)",Medium:"var(--med)",Low:"var(--low)"};
+const SEV_ORDER = ["Critical","High","Medium","Low","Info"];
+const SEV_CLASS = {Critical:"s-crit",High:"s-high",Medium:"s-med",Low:"s-low",Info:"s-info"};
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+function D(){ return REPORT_DATA[LANG]; }
+function U(){ return UI[LANG]; }
+
+function setText(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; }
+function areaKey(a){ var m=String(a==null?"":a).match(/^\s*(\d+)/); return m?m[1]:String(a==null?"":a); }
+function critList(v){ return String(v==null?"":v).split(/[\/,;&]+| and /i).map(function(s){return s.trim();}).filter(Boolean); }
+function findingAreaMap(d){ var f2a={}; (d.coverageMatrix||[]).forEach(function(r){ var k=areaKey(r.area); (r.relatedFindingIds||[]).forEach(function(id){ (f2a[id]=f2a[id]||{})[k]=1; }); }); return f2a; }
+
+function renderStatic(){
+  var u=U(), d=D();
+  document.documentElement.lang = (LANG==="zh"?"zh-CN":"en");
+  document.getElementById("langToggle").textContent = u.toggle;
+  setText("ui-eyebrow",u.eyebrow); setText("ui-generated",u.generated); setText("ui-scope",u.scope);
+  setText("ui-exec",u.exec); setText("ui-rating",u.rating); setText("ui-risk",u.risk); setText("ui-sevdist",u.sevdist);
+  setText("ui-estsum",u.estsum); setText("ui-bigtasks",u.bigtasks);
+  setText("ui-fstatus",u.fstatus); setText("ui-devops",u.devops);
+  setText("ui-dv-finding",u.dvFinding); setText("ui-dv-status",u.dvStatus); setText("ui-dv-task",u.dvTask);
+  setText("ui-matrix",u.matrix); setText("ui-criteria",u.criteria); setText("ui-name",u.name); setText("ui-status",u.status);
+  setText("ui-notes",u.notes); setText("ui-strengths",u.strengths); setText("ui-findings",u.findings);
+  setText("ui-fsev",u.fsev); setText("ui-fcomp",u.fcomp); setText("ui-ftscc",u.ftscc); setText("ui-fcc",u.fcc); setText("ui-roadmap",u.roadmap); setText("ui-method",u.method); setText("ui-disc",u.disc);
+  setText("ui-coverage",u.coverage); setText("ui-cov-control",u.covControl); setText("ui-cov-crit",u.criteria);
+  setText("ui-cov-status",u.covStatus); setText("ui-cov-notes",u.covNotes);
+  setText("r-title", d.meta.title);
+  setText("r-date", REPORT_DATA.generatedDate || "");
+  setText("r-scope", d.meta.scope);
+  setText("r-summary", d.posture.summary);
+  setText("r-rating", d.posture.overallRating);
+  var rp=document.getElementById("r-risk"); rp.textContent=u.sev[d.posture.riskLevel]||d.posture.riskLevel;
+  rp.style.color="#fff"; rp.style.background=RISK_COLOR[d.posture.riskLevel]||"var(--muted)";
+  setText("r-method", d.meta.methodology);
+  setText("r-disc", d.meta.disclaimer);
+  document.getElementById("r-foot").textContent = d.meta.title + " · " + (REPORT_DATA.generatedDate||"");
+
+  // stats
+  var sc=d.severityCounts, statHtml="";
+  var map=[["Critical",sc.critical,"s-crit"],["High",sc.high,"s-high"],["Medium",sc.medium,"s-med"],["Low",sc.low,"s-low"],["Info",sc.info,"s-info"]];
+  map.forEach(function(m){ statHtml+='<div class="stat '+m[2]+'"><div class="n">'+(m[1]||0)+'</div><div class="l">'+esc(u.sev[m[0]])+'</div></div>'; });
+  document.getElementById("r-stats").innerHTML=statHtml;
+
+  // matrix
+  var mh="";
+  d.soc2Matrix.forEach(function(r){
+    var sk=(r.status==="N/A")?"NA":r.status;
+    mh+='<tr><td class="crit-code">'+esc(r.criteria)+'</td><td>'+esc(r.name)+'</td>'+
+        '<td><span class="st st-'+sk+'">'+esc((STATUS_LABEL[LANG][r.status])||r.status)+'</span></td><td>'+esc(r.notes)+'</td></tr>';
+  });
+  document.getElementById("r-matrix").innerHTML=mh;
+
+  // strengths
+  var sh="";
+  d.strengths.forEach(function(s){ sh+='<div class="strength"><span class="ic">&#10003;</span><span>'+esc(s)+'</span></div>'; });
+  document.getElementById("r-strengths").innerHTML=sh;
+
+  // roadmap
+  var rh="";
+  d.remediationRoadmap.forEach(function(p){
+    var items=""; (p.items||[]).forEach(function(it){ items+='<li>'+esc(it)+'</li>'; });
+    rh+='<div class="phase"><h3>'+esc(p.phase)+'</h3><div class="tf">'+esc(p.timeframe)+'</div><ul>'+items+'</ul></div>';
+  });
+  document.getElementById("r-road").innerHTML=rh;
+
+  renderCoverage();
+  renderEstSummary();
+  renderBigTasks();
+  renderDevops();
+
+  // filters (preserve current selection by value)
+  buildFilters();
+  renderFindings();
+}
+
+function renderCoverage(){
+  var u=U(), d=D();
+  var sec=document.getElementById("sec-coverage");
+  if(!d.coverageMatrix || !d.coverageMatrix.length){ if(sec) sec.style.display="none"; return; }
+  if(sec) sec.style.display="";
+  setText("r-cov-narr", d.coverageNarrative||"");
+  var cs=d.coverageSummary||{};
+  var sumHtml="";
+  [["Implemented",cs.implemented,"cs-Implemented"],["Partial",cs.partial,"cs-Partial"],["Missing",cs.missing,"cs-Missing"],["Process",cs.process,"cs-Process"]].forEach(function(m){
+    sumHtml+='<div class="covstat '+m[2]+'"><div class="n">'+(m[1]||0)+'</div><div class="l">'+esc(u.cov[m[0]])+'</div></div>';
+  });
+  document.getElementById("r-cov-sum").innerHTML=sumHtml;
+  var rows="", lastArea=null;
+  d.coverageMatrix.forEach(function(c){
+    if(c.area!==lastArea){ rows+='<tr class="arearow"><td colspan="4">'+esc(c.area)+'</td></tr>'; lastArea=c.area; }
+    var rel=(c.relatedFindingIds||[]).map(function(id){return '<span class="relchip">'+esc(id)+'</span>';}).join("");
+    var notes=esc(c.notes||"")+(rel?'<div style="margin-top:6px">'+esc(u.covRelated)+': '+rel+'</div>':"");
+    rows+='<tr><td><b>'+esc(c.control)+'</b></td><td class="crit-code">'+esc(c.tscCriteria)+'</td>'+
+      '<td><span class="cov-pill cov-'+esc(c.status)+'">'+esc(u.cov[c.status]||c.status)+'</span></td><td>'+notes+'</td></tr>';
+  });
+  document.getElementById("r-coverage").innerHTML=rows;
+}
+
+function renderEstSummary(){
+  var d=D();
+  var es=d.estSummary;
+  var sec=document.getElementById("sec-estsum");
+  if(!es){ if(sec) sec.style.display="none"; return; }
+  if(sec) sec.style.display="";
+  setText("r-estsum-note", es.note||"");
+  var cards="";
+  (es.cards||[]).forEach(function(c){
+    cards+='<div class="estsum-card"><div class="n">'+esc(c.value)+'</div><div class="l">'+esc(c.label)+'</div></div>';
+  });
+  document.getElementById("r-estsum-head").innerHTML=cards;
+  var t="";
+  (es.tables||[]).forEach(function(tb){
+    t+='<div><h4>'+esc(tb.title)+'</h4><table><thead><tr>';
+    (tb.head||[]).forEach(function(h,i){ t+='<th'+(i?' class="tr"':'')+'>'+esc(h)+'</th>'; });
+    t+='</tr></thead><tbody>';
+    (tb.rows||[]).forEach(function(r){
+      t+='<tr'+(r.total?' class="totrow"':'')+'>';
+      (r.cells||[]).forEach(function(c,i){ t+='<td'+(i?' class="tr"':'')+'>'+esc(c)+'</td>'; });
+      t+='</tr>';
+    });
+    t+='</tbody></table></div>';
+  });
+  document.getElementById("r-estsum-tables").innerHTML=t;
+}
+
+function renderBigTasks(){
+  var u=U(), d=D();
+  var es=d.estSummary;
+  var sec=document.getElementById("sec-bigtasks");
+  var list=(es&&es.bigTasks)||[];
+  if(!list.length){ if(sec) sec.style.display="none"; return; }
+  if(sec) sec.style.display="";
+  setText("r-bigtasks-note", (es&&es.bigTasksNote)||"");
+  var L=u.lbl, html="";
+  list.forEach(function(b){
+    html+='<div class="bigtask">'+
+      '<div class="bt-head">'+
+        '<a class="bt-id" href="#fc-'+esc(b.id)+'" onclick="openFinding(\''+esc(b.id)+'\')">'+esc(b.id)+' &#8594;</a>'+
+        '<span class="bt-est">'+esc(b.est)+'</span>'+
+        '<span class="badge b-'+esc(b.severity)+'">'+esc(u.sev[b.severity]||b.severity)+'</span>'+
+        '<span class="bt-tag">'+esc(b.component)+'</span>'+
+        '<span class="bt-tag">'+esc(L.estConf)+': '+esc(b.conf)+'</span>'+
+        '<span class="bt-tag">'+esc(b.group)+'</span>'+
+      '</div>'+
+      '<div class="bt-title">'+esc(b.title)+'</div>'+
+      '<p class="bt-reason">'+esc(b.reason)+'</p>'+
+    '</div>';
+  });
+  document.getElementById("r-bigtasks").innerHTML=html;
+}
+
+function openFinding(id){ var el=document.getElementById("fc-"+id); if(el) el.classList.add("open"); }
+
+function renderDevops(){
+  var u=U(), d=D();
+  var sec=document.getElementById("sec-devops");
+  var rows=[];
+  d.findings.forEach(function(f){ (f.estOps||[]).forEach(function(o){ rows.push({f:f,o:o}); }); });
+  if(!rows.length){ if(sec) sec.style.display="none"; return; }
+  if(sec) sec.style.display="";
+  setText("r-devops-note", (d.estSummary&&d.estSummary.devopsNote)||"");
+  var sevRank={Critical:0,High:1,Medium:2,Low:3,Info:4};
+  rows.sort(function(a,b){ var s=(sevRank[a.f.severity]||9)-(sevRank[b.f.severity]||9); if(s) return s; return (a.f.priority||999)-(b.f.priority||999); });
+  var html="";
+  rows.forEach(function(r){
+    var fx=r.f.fixStatus||"Open";
+    var st='<span class="fixbadge '+(FIX_CLASS[fx]||"")+'">'+esc((u.fix&&u.fix[fx])||fx)+'</span>';
+    html+='<tr><td class="st"><a class="bt-id" href="#fc-'+esc(r.f.id)+'" onclick="openFinding(\''+esc(r.f.id)+'\')">'+esc(r.f.id)+'</a> '+
+      '<span class="badge b-'+esc(r.f.severity)+'">'+esc(u.sev[r.f.severity]||r.f.severity)+'</span></td>'+
+      '<td class="st">'+st+'</td><td>'+esc(r.o)+'</td></tr>';
+  });
+  document.getElementById("r-devops").innerHTML=html;
+}
+
+function buildFilters(){
+  var u=U(), d=D();
+  var fSev=document.getElementById("fSev"), fComp=document.getElementById("fComp");
+  var curSev=fSev.value, curComp=fComp.value;
+  var sevs=SEV_ORDER.filter(function(s){ return d.findings.some(function(f){return f.severity===s;}); });
+  var comps=[]; d.findings.forEach(function(f){ if(comps.indexOf(f.component)<0) comps.push(f.component); });
+  fSev.innerHTML='<option value="">'+esc(u.all)+'</option>'+sevs.map(function(s){return '<option value="'+s+'">'+esc(u.sev[s])+'</option>';}).join("");
+  fComp.innerHTML='<option value="">'+esc(u.all)+'</option>'+comps.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join("");
+  fSev.value=curSev; fComp.value=curComp;
+
+  // TSC Criteria filter (TSCC) — atomic TSC codes present across findings
+  var fTscc=document.getElementById("fTscc"), fCc=document.getElementById("fCc");
+  var curTscc=fTscc.value, curCc=fCc.value;
+  var tset=[]; d.findings.forEach(function(f){ critList(f.soc2Criteria).forEach(function(c){ if(tset.indexOf(c)<0) tset.push(c); }); });
+  tset.sort();
+  fTscc.innerHTML='<option value="">'+esc(u.all)+'</option>'+tset.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join("");
+  document.getElementById("grp-tscc").style.display = tset.length ? "" : "none";
+
+  // Control Coverage filter (CC) — NetBrain control areas, keyed by leading number for stable cross-language selection
+  var areas=[]; (d.coverageMatrix||[]).forEach(function(r){ var k=areaKey(r.area); if(k && !areas.some(function(a){return a.k===k;})) areas.push({k:k,label:r.area}); });
+  areas.sort(function(a,b){ return (parseInt(a.k,10)||99)-(parseInt(b.k,10)||99); });
+  fCc.innerHTML='<option value="">'+esc(u.all)+'</option>'+areas.map(function(a){return '<option value="'+esc(a.k)+'">'+esc(a.label)+'</option>';}).join("");
+  document.getElementById("grp-cc").style.display = areas.length ? "" : "none";
+  fTscc.value=curTscc; fCc.value=curCc;
+
+  // Fix-status filter — only show values present
+  var fStatus=document.getElementById("fStatus"); var curStatus=fStatus.value;
+  var sset=[]; d.findings.forEach(function(f){ var s=f.fixStatus||"Open"; if(sset.indexOf(s)<0) sset.push(s); });
+  var sord=["Open","In Progress","Fixed"].filter(function(s){return sset.indexOf(s)>=0;});
+  fStatus.innerHTML='<option value="">'+esc(u.all)+'</option>'+sord.map(function(s){return '<option value="'+esc(s)+'">'+esc((u.fix&&u.fix[s])||s)+'</option>';}).join("");
+  fStatus.value=curStatus;
+}
+
+function renderFindings(){
+  var u=U(), d=D();
+  var fSev=document.getElementById("fSev").value, fComp=document.getElementById("fComp").value;
+  var fTscc=document.getElementById("fTscc").value, fCc=document.getElementById("fCc").value;
+  var fStatusEl=document.getElementById("fStatus"); var fStatus=fStatusEl?fStatusEl.value:"";
+  var f2a=findingAreaMap(d);
+  var sevRank={Critical:0,High:1,Medium:2,Low:3,Info:4};
+  var list=d.findings.slice().sort(function(a,b){
+    var s=(sevRank[a.severity]==null?9:sevRank[a.severity])-(sevRank[b.severity]==null?9:sevRank[b.severity]);
+    if(s) return s;
+    return (a.priority||999)-(b.priority||999);
+  });
+  var filtered=list.filter(function(f){
+    if(fSev && f.severity!==fSev) return false;
+    if(fComp && f.component!==fComp) return false;
+    if(fTscc && critList(f.soc2Criteria).indexOf(fTscc)<0) return false;
+    if(fCc && !(f2a[f.id] && f2a[f.id][fCc])) return false;
+    if(fStatus && (f.fixStatus||"Open")!==fStatus) return false;
+    return true;
+  });
+  var html="";
+  filtered.forEach(function(f){
+    var L=u.lbl;
+    var fx=f.fixStatus||"Open";
+    var fxBadge=(fx!=="Open")?'<span class="fixbadge '+(FIX_CLASS[fx]||"")+'">'+esc((u.fix&&u.fix[fx])||fx)+'</span>':'';
+    html+='<div class="finding sev-'+esc(f.severity)+(fx==="Fixed"?' is-fixed':'')+'" id="fc-'+esc(f.id)+'">'+
+      '<div class="fhead" onclick="toggleF(\''+esc(f.id)+'\')">'+
+        '<span class="chev">&#9654;</span>'+
+        '<span class="badge b-'+esc(f.severity)+'">'+esc(u.sev[f.severity]||f.severity)+'</span>'+
+        fxBadge+
+        '<div class="ftitle"><span class="fid">'+esc(f.id)+'</span> &nbsp;'+esc(f.title)+
+          '<div class="ftags">'+
+            '<span class="tag crit">'+esc(L.criteria)+': '+esc(f.soc2Criteria)+'</span>'+
+            '<span class="tag comp">'+esc(f.component)+'</span>'+
+            (f.category?'<span class="tag">'+esc(f.category)+'</span>':'')+
+            (f.effort?'<span class="tag">'+esc(L.effort)+': '+esc(EFFORT_LABEL[LANG][f.effort]||f.effort)+'</span>':'')+
+            (f.estimate?'<span class="tag est">'+esc(L.estimate)+': '+esc(f.estimate)+'</span>':'')+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="fbody">'+
+        ((fx!=="Open")?'<div class="fixinfo">'+esc((u.fix&&u.fix[fx])||fx)+
+          (f.fixDate?' · '+esc(u.fixedOn)+' '+esc(f.fixDate):'')+
+          (f.fixCommit?' · '+esc(u.commit)+' '+esc(f.fixCommit):'')+
+          (f.fixNote?' — '+esc(f.fixNote):'')+'</div>':'')+
+        '<h4>'+esc(L.description)+'</h4><p>'+esc(f.description)+'</p>'+
+        '<h4>'+esc(L.location)+'</h4><div class="filepath">'+esc(f.file)+(f.line?'  :  '+esc(f.line):'')+'</div>'+
+        (f.evidence?'<h4>'+esc(L.evidence)+'</h4><pre class="evi">'+esc(f.evidence)+'</pre>':'')+
+        '<h4>'+esc(L.impact)+'</h4><p>'+esc(f.impact)+'</p>'+
+        '<h4>'+esc(L.remediation)+'</h4><div class="remediation">'+esc(f.remediation)+'</div>'+
+        (f.estimate?'<h4>'+esc(L.estimateFull)+'</h4><div class="estbox">'+
+          '<p class="estmeta"><span class="pill">'+esc(f.estimate)+'</span>'+
+            (f.estGroup?'<span class="gp">'+esc(L.estGroup)+': '+esc(f.estGroup)+'</span>':'')+
+            (f.estConf?'<span class="cf">'+esc(L.estConf)+': '+esc(f.estConf)+'</span>':'')+
+          '</p>'+
+          (f.estReason?'<p>'+esc(f.estReason)+'</p>':'')+
+          ((f.estOps&&f.estOps.length)?'<p class="estops-h">'+esc(L.estOps)+'</p><ul class="estops">'+f.estOps.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>':'')+
+        '</div>':'')+
+      '</div>'+
+    '</div>';
+  });
+  document.getElementById("r-findings").innerHTML=html||('<p style="color:var(--muted)">—</p>');
+  document.getElementById("r-count").textContent=u.shown(filtered.length,d.findings.length);
+}
+
+function toggleF(id){ var el=document.getElementById("fc-"+id); if(el) el.classList.toggle("open"); }
+function toggleLang(){ LANG=(LANG==="en"?"zh":"en"); renderStatic(); }
+
+renderStatic();
+</script>
+</body>
+</html>

@@ -1,0 +1,542 @@
+{
+ "SEC-001": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-002": {
+  "status": "Fixed",
+  "date": "2026-06-29",
+  "commit": "296a023e",
+  "note": "Code: replaced hardcoded git.token in application.properties.template with jasypt encrypted placeholder (sourced from secret store); Dockerfile already free of git-credential echo. DevOps backlog: rotate kc PAT (shihui account already suspended), purge git history (secret still in commit 8a687a99), inject git auth from Secrets Manager."
+ },
+ "SEC-003": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-004": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-005": {
+  "status": "Fixed",
+  "date": "2026-06-29",
+  "commit": "f26c8258",
+  "note": "Removed the CorsFilter (CorsConfig.java deleted) entirely instead of tightening it. SPA and API are same-origin in every env (prod/preprod/qa: same host under /api; dev: Angular dev-server proxies /api server-side); all other API callers are server-to-server. With no Access-Control-Allow-Origin emitted, browsers block all cross-origin requests by default - strictly stronger than an allowlist and eliminates the credentialed-wildcard CORS. Spring Security does not use .cors() and nothing referenced the bean."
+ },
+ "SEC-006": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-007": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-008": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-009": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-010": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-011": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-012": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-013": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-014": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-015": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-016": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-017": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-018": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-019": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-020": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-021": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-022": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-023": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-024": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-025": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-026": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-027": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-028": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-029": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-030": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-031": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-032": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-033": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-034": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-035": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-036": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-037": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-038": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-039": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-040": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-041": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-042": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-043": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-044": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-045": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-046": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-047": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-048": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-049": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-050": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-051": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-052": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-053": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-054": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-055": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-056": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-057": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-058": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-059": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-060": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-061": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-062": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-072": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-073": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-074": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-076": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-063": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-064": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-066": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-068": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-069": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-070": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-071": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-075": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-077": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-078": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-079": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-080": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-081": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-083": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-085": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-086": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-087": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-088": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-089": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-090": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-067": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-082": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-084": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ },
+ "SEC-065": {
+  "status": "Open",
+  "date": "",
+  "commit": "",
+  "note": ""
+ }
+}

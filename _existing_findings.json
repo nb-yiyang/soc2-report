@@ -1,0 +1,542 @@
+[
+ {
+  "id": "SEC-001",
+  "sev": "Critical",
+  "tsc": "CC6.1",
+  "cat": "Authentication / Token Integrity",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-framework/src/main/java/com/netbrain/kc/framework/token/JwtToken.java",
+  "title": "Hardcoded, low-entropy JWT signing secret committed in source enables token forgery and full privilege escalation"
+ },
+ {
+  "id": "SEC-002",
+  "sev": "Critical",
+  "tsc": "CC6.1",
+  "cat": "Hardcoded credential / API token in source control",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/application.properties.template",
+  "title": "Live Git Personal Access Token hardcoded in committed config template (and live git password recoverable from Dockerfile history)"
+ },
+ {
+  "id": "SEC-003",
+  "sev": "Critical",
+  "tsc": "CC6.1",
+  "cat": "Private key / TLS keystore in source control",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/server.jks",
+  "title": "TLS keystore (server.jks) and DER private key committed to source control with plaintext keystore password; .gitignore inert"
+ },
+ {
+  "id": "SEC-004",
+  "sev": "Critical",
+  "tsc": "CC6.1",
+  "cat": "Hardcoded Secret",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/src/main/java/com/netbrain/kc/ticket/sharefile/ShareFileV3.java",
+  "title": "Hardcoded ShareFile production credentials and OAuth client secret committed in source"
+ },
+ {
+  "id": "SEC-005",
+  "sev": "Critical",
+  "tsc": "CC6.1",
+  "cat": "CORS Misconfiguration",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-framework/src/main/java/com/netbrain/kc/framework/configure/CorsConfig.java",
+  "title": "CORS allows any origin reflected with credentials (allowCredentials=true + allowedOriginPattern '*')"
+ },
+ {
+  "id": "SEC-006",
+  "sev": "High",
+  "tsc": "CC6.7",
+  "cat": "Encryption in Transit / Certificate Validation",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/gitclient/RestClient.java",
+  "title": "Outbound TLS certificate AND hostname validation fully disabled in Git, License, and container git clients (trust-all)"
+ },
+ {
+  "id": "SEC-007",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Command Injection",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/gitclient/cli/GitCLIDiffer.java",
+  "title": "OS command injection via git CLI: repo name and release tags interpolated into a shell command stream"
+ },
+ {
+  "id": "SEC-008",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "SQL/SOQL Injection",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/src/main/java/com/netbrain/kc/ticket/tk/ticket/SalesForceService.java",
+  "title": "SOQL injection in Salesforce contact lookup (ticket email concatenated into query)"
+ },
+ {
+  "id": "SEC-009",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Broken Object Level Authorization (IDOR)",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/customer/CustomerController.java",
+  "title": "No object-level / tenant authorization on resource-by-id endpoints (IDOR), and the @PreAuthorize target (#targert) is misspelled so object checks are dead code"
+ },
+ {
+  "id": "SEC-010",
+  "sev": "High",
+  "tsc": "CC6.3",
+  "cat": "Privilege Escalation / Token Handling",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-security/src/main/java/com/netbrain/kc/security/config/TokenValidator.java",
+  "title": "Service-identity audiences grant fixed high privileges purely from a client-supplied JWT audience claim; refresh endpoint re-issues tokens from an unverified expired token"
+ },
+ {
+  "id": "SEC-011",
+  "sev": "Critical",
+  "tsc": "CC7.2",
+  "cat": "Sensitive data leakage into logs",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-framework/src/main/java/com/netbrain/kc/framework/aspect/APIInvokeLogAspect.java",
+  "title": "Full response bodies logged at INFO for every consumer API endpoint — reset tokens, JWTs & PII leak to log files"
+ },
+ {
+  "id": "SEC-012",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Secrets propagated through pipeline",
+  "comp": "CI-CD",
+  "file": "Jenkinsfile",
+  "title": "Pipeline packages git-tracked secrets (config dir) into the deploy artifact uploaded to S3"
+ },
+ {
+  "id": "SEC-013",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Excessive IAM privilege",
+  "comp": "Infra",
+  "file": "codepipeline-from-s3.json (kc-web)",
+  "title": "Overly broad wildcard IAM policies (admin actions + iam:PassRole *) in CloudFormation pipeline IaC"
+ },
+ {
+  "id": "SEC-014",
+  "sev": "High",
+  "tsc": "CC6.7",
+  "cat": "Boundary / Encryption in Transit",
+  "comp": "Infra",
+  "file": "knowledge-cloud-parent/nb-kc-main/reverse_proxy.nginx.conf",
+  "title": "Edge reverse proxy serves only plaintext HTTP (no TLS, no HTTP->HTTPS redirect) and proxies upstreams over http://"
+ },
+ {
+  "id": "SEC-015",
+  "sev": "High",
+  "tsc": "CC6.7",
+  "cat": "Encryption in Transit / Certificate Validation",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/application-prod.properties",
+  "title": "PostgreSQL connection uses NonValidatingFactory — TLS without certificate validation (DB MITM)"
+ },
+ {
+  "id": "SEC-016",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Encryption at Rest / Weak Cryptography",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-framework/src/main/java/com/netbrain/kc/framework/configure/EncryptorConfig.java",
+  "title": "Jasypt configured with weak PBEWithMD5AndDES algorithm and low iteration count for secrets at rest"
+ },
+ {
+  "id": "SEC-017",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Insecure Randomness / Token Generation",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-api/src/main/java/com/netbrain/kc/api/consumer/AuthController.java",
+  "title": "Security tokens and package passwords generated with non-cryptographic PRNG (RandomStringUtils / java.util.Random)"
+ },
+ {
+  "id": "SEC-018",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Authentication / Privileged Access",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-security/src/main/java/com/netbrain/kc/security/config/WebSecurityConfig.java",
+  "title": "Actuator endpoints permitAll (no auth); dead management.security.enabled=false and static admin/secret credentials committed across all environments"
+ },
+ {
+  "id": "SEC-019",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Authentication / Brute-Force Protection",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-security/src/main/java/com/netbrain/kc/security/config/TokenValidator.java",
+  "title": "No account lockout / brute-force throttling or rate limiting on login, password-reset, or any endpoint"
+ },
+ {
+  "id": "SEC-020",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Session Management / Token Storage",
+  "comp": "Frontend",
+  "file": "src/app/root/root.module.ts",
+  "title": "JWT access token, 30-day refresh token, and user PII persisted to browser localStorage (XSS-exfiltratable)"
+ },
+ {
+  "id": "SEC-021",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "DOM XSS",
+  "comp": "Frontend",
+  "file": "src/app/common/advanced/components/nb-markdown/nb-markdown.component.ts",
+  "title": "nb-markdown renders user-authored markdown to innerHTML WITHOUT sanitization on the readonly path (stored DOM XSS)"
+ },
+ {
+  "id": "SEC-022",
+  "sev": "High",
+  "tsc": "C1.2",
+  "cat": "Data Confidentiality / Insecure Direct Object Access",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/awsclient/AWSClient.java",
+  "title": "S3 pre-signed download URLs hardcoded to 6-hour validity, ignoring configured link-expiry policy"
+ },
+ {
+  "id": "SEC-023",
+  "sev": "High",
+  "tsc": "CC6.1",
+  "cat": "Hardcoded Secret / Signature Verification",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/repo/GitHubWebhookController.java",
+  "title": "Hardcoded GitHub webhook HMAC secret 'netbrain', non-constant-time comparison, and signature logging"
+ },
+ {
+  "id": "SEC-024",
+  "sev": "High",
+  "tsc": "CC7.1",
+  "cat": "Vulnerable / EOL dependency",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/pom.xml",
+  "title": "fastjson 1.2.83 (EOL) and EOL/vulnerable frontend production dependencies shipped to production"
+ },
+ {
+  "id": "SEC-025",
+  "sev": "High",
+  "tsc": "CC8.1",
+  "cat": "Missing security testing in CI",
+  "comp": "CI-CD",
+  "file": "Jenkinsfile",
+  "title": "No SAST quality gate, SCA, or secret scanning in either CI pipeline"
+ },
+ {
+  "id": "SEC-026",
+  "sev": "High",
+  "tsc": "CC6.8",
+  "cat": "Supply chain / artifact integrity",
+  "comp": "CI-CD",
+  "file": "knowledge-cloud-parent/nb-kc-main/docker-compose.yml",
+  "title": "Deployment compose pulls application images from personal Docker Hub namespaces; EOL/unpinned base images; containers run as root"
+ },
+ {
+  "id": "SEC-027",
+  "sev": "High",
+  "tsc": "P4.2",
+  "cat": "Data Retention / Deletion (Privacy)",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/src/main/java/com/netbrain/kc/ticket/tk/ticket/Ticket.java",
+  "title": "Customer support-ticket PII has no enforced deletion/retention despite a 'delete when resolved' flag; expired tokens never purged"
+ },
+ {
+  "id": "SEC-028",
+  "sev": "High",
+  "tsc": "CC7.2",
+  "cat": "Missing audit of security events",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-security/src/main/java/com/netbrain/kc/security/config/TokenValidator.java",
+  "title": "Security events not audited: failed logins, authorization denials, logout, and all administrative IAM changes are unrecorded"
+ },
+ {
+  "id": "SEC-029",
+  "sev": "High",
+  "tsc": "CC7.2",
+  "cat": "Centralization & log integrity",
+  "comp": "Infra",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/log4j2-aws.xml",
+  "title": "No centralized/tamper-resistant log aggregation; audit log is a mutable JPA entity"
+ },
+ {
+  "id": "SEC-030",
+  "sev": "High",
+  "tsc": "CC7.2",
+  "cat": "Sensitive data leakage into logs",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/src/main/java/com/netbrain/kc/ticket/tk/ticket/SalesForceService.java",
+  "title": "Live Salesforce OAuth access token and customer license keys logged in clear text (production paths)"
+ },
+ {
+  "id": "SEC-031",
+  "sev": "High",
+  "tsc": "A1.2",
+  "cat": "Availability / Rate Limiting Absence",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/reverse_proxy.nginx.conf",
+  "title": "No application-level rate limiting / login throttling enables DoS and brute-force (availability)"
+ },
+ {
+  "id": "SEC-032",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Hardcoded credential in source control",
+  "comp": "Infra",
+  "file": "knowledge-cloud-parent/nb-kc-main/docker-compose.yml",
+  "title": "Plaintext DB passwords ('Netbrain!', postgres) hardcoded in docker-compose files and packaged application.properties"
+ },
+ {
+  "id": "SEC-033",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Hardcoded encryption key in source control",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/src/test/resources/application.properties",
+  "title": "Jasypt master passwords committed next to their ciphertext in test resources/code"
+ },
+ {
+  "id": "SEC-034",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Authentication / Password Policy",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-api/src/main/java/com/netbrain/kc/api/provider/service/impl/UserServiceImpl.java",
+  "title": "Password complexity enforced only client-side; backend accepts any password on create/update/reset"
+ },
+ {
+  "id": "SEC-035",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Authentication / Password Reset",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-api/src/main/java/com/netbrain/kc/api/consumer/AuthController.java",
+  "title": "Password-reset flow enables user/email enumeration and tokens are not single-use on verify (PII disclosed on public verify)"
+ },
+ {
+  "id": "SEC-036",
+  "sev": "Medium",
+  "tsc": "CC6.3",
+  "cat": "Ineffective Access Control Logic",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/repo/GitRepoController.java",
+  "title": "Write/sync operations lack method-level authorization; permission check uses substring match instead of equality"
+ },
+ {
+  "id": "SEC-037",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Input Validation",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/src/main/java/com/netbrain/kc/ticket/tk/ticket/Ticket.java",
+  "title": "Systemic missing request-body validation: @RequestBody without @Valid and DTO constraints commented out"
+ },
+ {
+  "id": "SEC-038",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Path Traversal",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/frameworkrelease/FrameworkReleaseService.java",
+  "title": "Path traversal sinks: Zip Slip in CommonUtils.unzip and uploaded-filename path in framework-release upload"
+ },
+ {
+  "id": "SEC-039",
+  "sev": "Medium",
+  "tsc": "CC6.7",
+  "cat": "Encryption in Transit",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-api/src/main/java/com/netbrain/kc/api/provider/service/impl/EmailServiceImpl.java",
+  "title": "Custom SMTP send path enables TLS without enforcing certificate validation or requiring STARTTLS"
+ },
+ {
+  "id": "SEC-040",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Integrity / Signature Coverage",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-framework/src/main/java/com/netbrain/kc/framework/util/Signature.java",
+  "title": "Package signing only covers the first N bytes of the upgrade package (truncated integrity)"
+ },
+ {
+  "id": "SEC-041",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Unauthenticated Endpoint Exposure",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-security/src/main/java/com/netbrain/kc/security/config/WebSecurityConfig.java",
+  "title": "Unauthenticated actuator, API-docs/swagger, and webhook endpoints removed from the security filter chain (web.ignoring + permitAll)"
+ },
+ {
+  "id": "SEC-042",
+  "sev": "Medium",
+  "tsc": "CC7.2",
+  "cat": "Information disclosure",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-framework/src/main/java/com/netbrain/kc/framework/exception/FrameworkExceptionAdvice.java",
+  "title": "Server-side root-cause exception messages returned to clients; verbose stack traces and printStackTrace() in production"
+ },
+ {
+  "id": "SEC-043",
+  "sev": "Medium",
+  "tsc": "CC7.2",
+  "cat": "Missing audit of security events",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/publish/PublishController.java",
+  "title": "Audited data-export/download actions attributed to licenseId/robot instead of the authenticated user; UI reads not audited"
+ },
+ {
+  "id": "SEC-044",
+  "sev": "Medium",
+  "tsc": "CC6.6",
+  "cat": "Denial of Service / Resource Limits",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/application-prod.properties",
+  "title": "Unbounded 4GB multipart upload limit against a 25-connection pool enables resource-exhaustion DoS"
+ },
+ {
+  "id": "SEC-045",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Encryption at Rest",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/awsclient/AWSClient.java",
+  "title": "S3 object uploads do not specify server-side encryption"
+ },
+ {
+  "id": "SEC-046",
+  "sev": "Medium",
+  "tsc": "CC6.6",
+  "cat": "Missing CSP / Security Headers",
+  "comp": "Infra",
+  "file": "docker/nginx.conf",
+  "title": "Frontend nginx serves no Content-Security-Policy or security response headers (and app filter omits Permissions-Policy/frame-ancestors and skips the management port)"
+ },
+ {
+  "id": "SEC-047",
+  "sev": "Medium",
+  "tsc": "C1.1",
+  "cat": "PII in Non-Prod Fixtures / Data Minimization",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/data.sql",
+  "title": "GitHub webhook DTO/data fixtures and seed data embed PII-shaped values, reused weak hashes, and a committed Jasypt master password"
+ },
+ {
+  "id": "SEC-048",
+  "sev": "Medium",
+  "tsc": "CC7.1",
+  "cat": "Outdated / vulnerable dependency",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/pom.xml",
+  "title": "Outdated backend libraries shipped to production (gson 2.8.5, httpcore/httpclient 4.x, reactor-core pin, saaj/jaxb) plus unpinned RELEASE metaversion"
+ },
+ {
+  "id": "SEC-049",
+  "sev": "Medium",
+  "tsc": "CC8.1",
+  "cat": "Build integrity / Change authorization",
+  "comp": "CI-CD",
+  "file": "Jenkinsfile",
+  "title": "CI build/change-management gaps: tests skipped, unsigned artifacts, npm ci --force, OIDC token in world-readable /tmp, reused credential, empty prod approver"
+ },
+ {
+  "id": "SEC-050",
+  "sev": "Low",
+  "tsc": "CC6.1",
+  "cat": "Input Validation",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/src/main/java/com/netbrain/kc/ticket/sharefile/ShareFileV3.java",
+  "title": "ShareFile getItemByPath builds URL with unencoded user path (URL/parameter injection)"
+ },
+ {
+  "id": "SEC-051",
+  "sev": "Low",
+  "tsc": "CC6.1",
+  "cat": "Output Encoding / Injection",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/netbrain-ticket/src/main/resources/templates/ticketEmail.ftl",
+  "title": "Templated support email injects unescaped user-controlled values (HTML/email content injection)"
+ },
+ {
+  "id": "SEC-052",
+  "sev": "Low",
+  "tsc": "CC6.1",
+  "cat": "Weak Cryptography",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-framework/src/main/java/com/netbrain/kc/framework/util/CommonUtils.java",
+  "title": "Weak/legacy cryptography: MD5 file hashing and hand-rolled RSA license signature verification"
+ },
+ {
+  "id": "SEC-053",
+  "sev": "Low",
+  "tsc": "CC6.1",
+  "cat": "Embedded key material in source control",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/application.properties.template",
+  "title": "RSA license-verification public key embedded in committed config template alongside live secrets"
+ },
+ {
+  "id": "SEC-054",
+  "sev": "Low",
+  "tsc": "CC6.1",
+  "cat": "Client-Side Hardening",
+  "comp": "Frontend",
+  "file": "src/app/core/interceptors/auth.interceptor.ts",
+  "title": "Frontend defense-in-depth gaps: bearer token attached to any host, open-redirect returnUrl, untrusted content via [innerHTML], guid() uses Math.random()"
+ },
+ {
+  "id": "SEC-055",
+  "sev": "Medium",
+  "tsc": "CC6.1",
+  "cat": "Client-Side Access Control",
+  "comp": "Frontend",
+  "file": "src/app/main-ui/guards/permission.guard.ts",
+  "title": "Frontend authorization (route guard + nb-permissions + tenant interceptor) is UI-only and client-trusted"
+ },
+ {
+  "id": "SEC-056",
+  "sev": "Low",
+  "tsc": "C1.1",
+  "cat": "PII in Logs",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-resourcemanager/src/main/java/com/netbrain/kc/resourcemanager/customer/CustomerIEInstanceService.java",
+  "title": "PII (email/displayName) and customer license data written to local application logs"
+ },
+ {
+  "id": "SEC-057",
+  "sev": "Low",
+  "tsc": "CC7.1",
+  "cat": "Vulnerable / EOL tooling",
+  "comp": "Frontend",
+  "file": "D:/dev/kc-web/package.json",
+  "title": "Vulnerable/EOL frontend test & build tooling and transitive dev dependencies"
+ },
+ {
+  "id": "SEC-058",
+  "sev": "Low",
+  "tsc": "CC7.1",
+  "cat": "Outdated test dependency",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/pom.xml",
+  "title": "Very old test-scope libraries pinned across modules (Mockito 2.23.4; nb-kc-main JUnit 4.12 = CVE-2020-15250)"
+ },
+ {
+  "id": "SEC-059",
+  "sev": "Info",
+  "tsc": "CC6.7",
+  "cat": "TLS / Boundary",
+  "comp": "Backend",
+  "file": "knowledge-cloud-parent/nb-kc-main/config/application-prod.properties",
+  "title": "Inconsistent/undocumented mTLS boundary configuration across profiles"
+ },
+ {
+  "id": "SEC-060",
+  "sev": "Info",
+  "tsc": "CC6.1",
+  "cat": "Embedded credential in test data / hygiene",
+  "comp": "Backend",
+  "file": "aws_credential.png",
+  "title": "Trivial credential-like literals and onboarding screenshots committed (informational; no live secrets)"
+ }
+]
