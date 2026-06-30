@@ -12,10 +12,10 @@
   "note": "Code: replaced hardcoded git.token in application.properties.template with jasypt encrypted placeholder (sourced from secret store); Dockerfile already free of git-credential echo. DevOps backlog: rotate kc PAT (shihui account already suspended), purge git history (secret still in commit 8a687a99), inject git auth from Secrets Manager."
  },
  "SEC-003": {
-  "status": "Open",
-  "date": "",
+  "status": "Fixed",
+  "date": "2026-06-30",
   "commit": "",
-  "note": ""
+  "note": "Code/repo portion already resolved by the config restructure (develop merge), verified: server.jks + private_key.der are no longer git-tracked and not on disk; .gitignore now covers them (*.der, config/*.jks); no tracked file carries the plaintext keystore password (config/application.properties uses ${SERVER_SSL_KEY_STORE_PASSWORD}; keystore path/key delivered at runtime). No further developer change needed. DevOps backlog REMAINS: rotate the TLS cert/keypair + DER key + keystore password (still 'netbrain', confirmed live in Secrets Manager) and purge both files + the password from git history."
  },
  "SEC-004": {
   "status": "Fixed",
