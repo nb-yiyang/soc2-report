@@ -18,10 +18,10 @@
   "note": ""
  },
  "SEC-004": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-06-30",
+  "commit": "9e622a95",
+  "note": "Code: deleted the dead ShareFileV3.main() demo harness that hardcoded ShareFile creds (evan.bi / Netbrain1) + OAuth clientId/clientSecret; it was if(false) scaffolding with local C:\\temp paths, not a prod entry point, and nothing referenced it. Secret values now absent from the working tree; module compiles. DevOps backlog: rotate the ShareFile account password + OAuth client secret (needs ShareFile admin) and purge both from git history."
  },
  "SEC-005": {
   "status": "Fixed",
