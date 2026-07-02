@@ -30,10 +30,10 @@
   "note": "Removed the CorsFilter (CorsConfig.java deleted) entirely instead of tightening it. SPA and API are same-origin in every env (prod/preprod/qa: same host under /api; dev: Angular dev-server proxies /api server-side); all other API callers are server-to-server. With no Access-Control-Allow-Origin emitted, browsers block all cross-origin requests by default - strictly stronger than an allowlist and eliminates the credentialed-wildcard CORS. Spring Security does not use .cors() and nothing referenced the bean."
  },
  "SEC-006": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "ee7a0974",
+  "note": "Code: removed trust-all TLS from both outbound REST clients. RestClient (git) and LicenseServerRestClient (license) now use the default HttpClients.custom().build() which validates certificate chain + hostname via the JVM trust store; deleted the accepting TrustStrategy, NoopHostnameVerifier, and the dead turnOffSslChecking()/UNQUESTIONING_TRUST_MANAGER. Dockerfile already free of 'http.sslVerify false'; git CLI (GitCLIDiffer) has no SSL override. Compiles clean. DevOps backlog: if the internal git/license endpoints present private/self-signed certs, import that CA into the JVM/host truststore or these outbound calls will fail after this change."
  },
  "SEC-007": {
   "status": "Open",
