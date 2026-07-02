@@ -210,10 +210,10 @@
   "note": ""
  },
  "SEC-036": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "d4cc787b",
+  "note": "Two parts. (1) Substring-vs-equality permission check: fixed by the shared CustomPermissionEvaluator contains()->equals() change in SEC-062 (d4cc787b), with denial regression test. (2) 'Write/sync operations lack method-level authorization' (syncRepo /repos/common-repo, syncDeltaChangeByReleaseId /repos/releases/{id}): assessed as a FALSE POSITIVE per product-owner domain knowledge - these PATCH endpoints do not write to the git repo; they only trigger KC's existing scheduled GitHub pull/delta-generation earlier than the interval (a refresh action), so the class-level read permission (PERMISSION_COMMON_R) is the correct/legitimate control. No _RW requirement added. Both concerns resolved; no additional code change beyond SEC-062."
  },
  "SEC-037": {
   "status": "Open",
