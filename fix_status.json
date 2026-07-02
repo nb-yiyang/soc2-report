@@ -390,10 +390,10 @@
   "note": ""
  },
  "SEC-076": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "157d4fef",
+  "note": "Peer-review enforcement (CC8.1). Branch protection (require PR + non-author approval) enabled at the repo level per the team - this satisfies the core CC8.1 control. Added real PR templates with a review + security checklist to both repos: kc-backend (157d4fef, soc2-prep) and kc-web (e95b533, soc2-prep branch; replaces the 22-byte stub). CODEOWNERS intentionally skipped for now (branch protection already requires a non-author review); can be added later for path-based routing of security-sensitive files. DevOps evidence task remaining: export and retain the branch-protection ruleset for both repos as SOC2 audit evidence."
  },
  "SEC-063": {
   "status": "Open",
