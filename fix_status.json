@@ -42,10 +42,10 @@
   "note": ""
  },
  "SEC-008": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "1a55e365",
+  "note": "Code: SalesForceService.getContactId no longer concatenates the raw email into SOQL. Now escapes SOQL string-literal chars (backslash, single-quote) and URL-encodes the entire query via URLEncoder.encode(...UTF_8), so a crafted email cannot break out of the SOQL literal or inject extra query params. Compiles clean. Optional defense-in-depth not done: adding @Email + @Valid on the ticket-creation DTO/controller (would need spring-boot-starter-validation wired into netbrain-ticket); not required since the query building is now injection-safe."
  },
  "SEC-009": {
   "status": "Open",
