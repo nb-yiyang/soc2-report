@@ -174,10 +174,10 @@
   "note": ""
  },
  "SEC-030": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "2caf39a5",
+  "note": "Code: removed cleartext secret logging. SalesForceService no longer logs the Salesforce OAuth access token (replaced 'Access Token: '+token with a non-sensitive 'authentication succeeded' message). TokenValidator no longer logs the raw license key on parse failure; both sinks now log the licenseId (safe customer identifier, for debuggability) + exception class name, never licenseKeyString and not the raw Jackson message which can echo input. Grep confirms no accessToken/licenseKeyString in any log statement; compiles clean. DevOps backlog: scrub historical kc.log files that already captured tokens/keys, and treat any tokens previously logged as exposed (ties into the SEC-001 secret rotation)."
  },
  "SEC-031": {
   "status": "Open",
