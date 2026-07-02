@@ -1,9 +1,9 @@
 {
  "SEC-001": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-06-30",
+  "commit": "fb8e2d92",
+  "note": "Code: removed the hardcoded JWT HMAC secret literal ('netbrain-knowledge-cloud') and 'do not modify' comment from JwtToken; signing key now sourced from config property jwt.secret via new JwtTokenConfigurer (@PostConstruct -> JwtToken.initAlgorithm), no default so a missing key fails fast. Kept HMAC256 (symmetric externalize); asymmetric RS256/ES256 is a larger optional follow-up. Local dev key in gitignored application-local.properties. PREREQUISITE/DevOps backlog: add a random >=256-bit jwt.secret per environment to AWS Secrets Manager BEFORE deploying (app won't start without it), rotate to invalidate all existing forged/old tokens (coordinated redeploy), and purge the old literal from git history."
  },
  "SEC-002": {
   "status": "Fixed",
