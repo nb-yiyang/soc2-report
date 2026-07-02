@@ -96,10 +96,10 @@
   "note": ""
  },
  "SEC-017": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "5b522bb5",
+  "note": "Code: swapped non-crypto RandomStringUtils.random*() for the SecureRandom-backed RandomStringUtils.secure().next*() at all 4 security-token sites: password-reset token (AuthController), approval token (ApprovalToken), and the two customer-package passwords (AutoUpdateService). commons-lang3 3.17.0 (via Spring Boot 3.5 BOM) provides secure(). Kept the same charset/length (alphabetic/alphanumeric, 20 chars) so no format/DB-length change; only the RNG source changed from predictable to CSPRNG. Reset tokens already single-use (deleted after verify). Compiles clean."
  },
  "SEC-018": {
   "status": "Open",
