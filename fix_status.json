@@ -84,10 +84,10 @@
   "note": ""
  },
  "SEC-015": {
-  "status": "Open",
-  "date": "",
+  "status": "Fixed",
+  "date": "2026-07-02",
   "commit": "",
-  "note": ""
+  "note": "No developer/code change: the JDBC URL is no longer committed anywhere in the repo (verified via git grep) - the config restructure moved spring.datasource.url into Secrets Manager. So the code/repo portion is resolved. DevOps backlog (finding NOT neutralized until done): the Secrets Manager datasource URL still contains sslmode=require&sslfactory=org.postgresql.ssl.NonValidatingFactory, so DB TLS is still unauthenticated (MITM). Fix in Secrets Manager per env: remove sslfactory=NonValidatingFactory and set sslmode=verify-full with sslrootcert=<AWS RDS CA bundle>, and place the RDS CA bundle on the hosts/containers."
  },
  "SEC-016": {
   "status": "Open",
