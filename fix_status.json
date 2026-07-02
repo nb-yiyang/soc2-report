@@ -366,10 +366,10 @@
   "note": ""
  },
  "SEC-062": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "d4cc787b",
+  "note": "CustomPermissionEvaluator.hasPrivilege changed from substring match (grantedAuth.getAuthority().contains(permission)) to exact equals(). Verified the model is exact-string RBAC: authorities are SimpleGrantedAuthority(exact permission name) and checks use the same Constants.PERMISSION_* strings, so equals() keeps all legitimate access and removes the substring over-grant. Added CustomPermissionEvaluatorTest (JUnit 5, 3 tests incl. the required denial regression: a substring of a granted authority is denied) - all pass. Also covers the substring-match portion of SEC-036 (its separate 'add method-level authz to write/sync ops' part remains). The other .contains() hit (GitCollaborator) is Set.contains(element) = correct exact membership, not a vuln."
  },
  "SEC-072": {
   "status": "Open",
