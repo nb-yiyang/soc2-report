@@ -132,10 +132,10 @@
   "note": "Externalized the S3 pre-signed URL TTL: AWSClient no longer hardcodes Duration.ofHours(6); it reads a new dedicated property application.package.downloadLink.presignedUrlExpireMinutes (default 360=6h), clamped to the valid S3 range [1min,7days]. NOTE: audit premise corrected - expireMinutes is the package *regeneration cadence* (short in dev/qa for fresh rebuilds, longer in prod), NOT the URL lifetime, so the two are intentionally separate and were NOT coupled (coupling would make dev URLs expire instantly). The real gap was the hardcoded/un-governed TTL; now configurable + documented, so C1.2 is satisfied. 6h retained as the deliberate customer download grace period; per-env override via ECS env var."
  },
  "SEC-023": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "045d15af",
+  "note": "Removed the finding entirely by deleting the unused GitHubWebhookController (a prototype stub: it only verified the signature and returned ok/badRequest, triggered no downstream processing, and nothing referenced it). Also removed its now-dead '/webhooks' permitAll matcher in WebSecurityConfig. This eliminates the hardcoded 'netbrain' HMAC secret, the non-constant-time comparison, the signature logging, and the unguarded index/DoS path. DevOps 'rotate netbrain webhook secret' is now MOOT (no secret in code). CommonUtils.hmacWithJava is now unused but left in place as a generic util. If webhooks are needed later, re-add with @Value-injected secret + MessageDigest.isEqual per the original remediation."
  },
  "SEC-024": {
   "status": "Open",
