@@ -372,10 +372,10 @@
   "note": "CustomPermissionEvaluator.hasPrivilege changed from substring match (grantedAuth.getAuthority().contains(permission)) to exact equals(). Verified the model is exact-string RBAC: authorities are SimpleGrantedAuthority(exact permission name) and checks use the same Constants.PERMISSION_* strings, so equals() keeps all legitimate access and removes the substring over-grant. Added CustomPermissionEvaluatorTest (JUnit 5, 3 tests incl. the required denial regression: a substring of a granted authority is denied) - all pass. Also covers the substring-match portion of SEC-036 (its separate 'add method-level authz to write/sync ops' part remains). The other .contains() hit (GitCollaborator) is Set.contains(element) = correct exact membership, not a vuln."
  },
  "SEC-072": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "077712f1",
+  "note": "Same root issue as SEC-009, at the evaluator level (CustomPermissionEvaluator ignores the target object). Resolved by the same product-owner design decision: KC uses role/permission-level (RBAC) authorization with no per-tenant/object isolation requirement, so object-level tenant checks are intentionally out of scope. The two concrete defects in this finding's evidence are addressed: (1) substring match getAuthority().contains() -> exact equals() in SEC-062 (d4cc787b) with a denial test; (2) the misleading #targert dead target -> explicit null across all @PreAuthorize in SEC-009 (077712f1). No additional code under the RBAC model. If per-tenant isolation is ever required, reimplement the evaluator to load the target by id and verify tenant membership (the 3-arg overload) + add a tenant A-vs-B test matrix. See [[SEC-009]] and [[SEC-062]]."
  },
  "SEC-073": {
   "status": "Open",
