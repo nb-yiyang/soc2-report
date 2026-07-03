@@ -48,10 +48,10 @@
   "note": "Code: SalesForceService.getContactId no longer concatenates the raw email into SOQL. Now escapes SOQL string-literal chars (backslash, single-quote) and URL-encodes the entire query via URLEncoder.encode(...UTF_8), so a crafted email cannot break out of the SOQL literal or inject extra query params. Compiles clean. Optional defense-in-depth not done: adding @Email + @Valid on the ticket-creation DTO/controller (would need spring-boot-starter-validation wired into netbrain-ticket); not required since the query building is now injection-safe."
  },
  "SEC-009": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "077712f1",
+  "note": "Resolved by design decision (product owner): KC uses role/permission-level (RBAC) authorization - holding a permission grants access to all resources of that type; there is no per-tenant/object isolation requirement, so object-level checks (the IDOR concern) are intentionally out of scope. Cleanup done: replaced the misleading misspelled #targert (which silently resolved to null and implied a non-existent object check) with an explicit null across all 83 @PreAuthorize expressions, so annotations honestly express permission-only checks. Kept hasPermission (not hasAuthority) to preserve the CustomPermissionEvaluator's per-request deactivated-user block, which IS load-bearing: verified that validateByToken does NOT re-check isInactive for an already-issued token, so the evaluator's check is the per-request gate (deactivated users are also blocked at login via isValidUIToken). If per-tenant isolation is ever required, implement the 3-arg evaluator (hasPermission(id, type, perm)) + service-layer entitlement checks."
  },
  "SEC-010": {
   "status": "Open",
