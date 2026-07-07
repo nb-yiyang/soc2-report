@@ -36,10 +36,10 @@
   "note": "Code: removed trust-all TLS from both outbound REST clients. RestClient (git) and LicenseServerRestClient (license) now use the default HttpClients.custom().build() which validates certificate chain + hostname via the JVM trust store; deleted the accepting TrustStrategy, NoopHostnameVerifier, and the dead turnOffSslChecking()/UNQUESTIONING_TRUST_MANAGER. Dockerfile already free of 'http.sslVerify false'; git CLI (GitCLIDiffer) has no SSL override. Compiles clean. DevOps backlog: if the internal git/license endpoints present private/self-signed certs, import that CA into the JVM/host truststore or these outbound calls will fail after this change."
  },
  "SEC-007": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-03",
+  "commit": "0ca41a10",
+  "note": "GitCLIDiffer no longer pipes an interpolated command stream into a shell (/bin/sh or cmd.exe). Rewrote doSend() to run each git step via an explicit argv ProcessBuilder (no shell parsing): git init/add/commit, then git push -f <url> HEAD:diff-branches --push-option=<to> --push-option=<from> with stderr redirected to result.txt via ProcessBuilder.redirectError (replacing the shell '2>result.txt'); the 'echo >> README.md' shell redirect is replaced by a Java Files.writeString. Added allowlist validation (^[A-Za-z0-9._/-]+$, no '..') on repoName/from/to before use, rejecting shell metacharacters/newlines/path-traversal. Removed getCLI()/shell, buildCommands(), the commands field, and the PUSH_DIFF_CMD interpolation. Compiles clean; git command semantics preserved (init/add/commit/push refspec + push-options unchanged), so behavior is equivalent - full runtime regression of the diff flow needs the git server + pre-receive hook. NOTE: Consts.PUSH_DIFF_CMD is now an unused dead template, left in place."
  },
  "SEC-008": {
   "status": "Fixed",
