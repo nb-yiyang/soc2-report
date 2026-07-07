@@ -1,542 +1,542 @@
 {
- "SEC-001": {
-  "status": "Fixed",
-  "date": "2026-06-30",
-  "commit": "fb8e2d92",
-  "note": "Code: removed the hardcoded JWT HMAC secret literal ('netbrain-knowledge-cloud') and 'do not modify' comment from JwtToken; signing key now sourced from config property jwt.secret via new JwtTokenConfigurer (@PostConstruct -> JwtToken.initAlgorithm), no default so a missing key fails fast. Kept HMAC256 (symmetric externalize); asymmetric RS256/ES256 is a larger optional follow-up. Local dev key in gitignored application-local.properties. PREREQUISITE/DevOps backlog: add a random >=256-bit jwt.secret per environment to AWS Secrets Manager BEFORE deploying (app won't start without it), rotate to invalidate all existing forged/old tokens (coordinated redeploy), and purge the old literal from git history."
- },
- "SEC-002": {
-  "status": "Fixed",
-  "date": "2026-06-29",
-  "commit": "296a023e",
-  "note": "Code: replaced hardcoded git.token in application.properties.template with jasypt encrypted placeholder (sourced from secret store); Dockerfile already free of git-credential echo. DevOps backlog: rotate kc PAT (shihui account already suspended), purge git history (secret still in commit 8a687a99), inject git auth from Secrets Manager."
- },
- "SEC-003": {
-  "status": "Fixed",
-  "date": "2026-06-30",
-  "commit": "",
-  "note": "Code/repo portion already resolved by the config restructure (develop merge), verified: server.jks + private_key.der are no longer git-tracked and not on disk; .gitignore now covers them (*.der, config/*.jks); no tracked file carries the plaintext keystore password (config/application.properties uses ${SERVER_SSL_KEY_STORE_PASSWORD}; keystore path/key delivered at runtime). No further developer change needed. DevOps backlog REMAINS: rotate the TLS cert/keypair + DER key + keystore password (still 'netbrain', confirmed live in Secrets Manager) and purge both files + the password from git history."
- },
- "SEC-004": {
-  "status": "Fixed",
-  "date": "2026-06-30",
-  "commit": "9e622a95",
-  "note": "Code: deleted the dead ShareFileV3.main() demo harness that hardcoded ShareFile creds (evan.bi / Netbrain1) + OAuth clientId/clientSecret; it was if(false) scaffolding with local C:\\temp paths, not a prod entry point, and nothing referenced it. Secret values now absent from the working tree; module compiles. DevOps backlog: rotate the ShareFile account password + OAuth client secret (needs ShareFile admin) and purge both from git history."
- },
- "SEC-005": {
-  "status": "Fixed",
-  "date": "2026-06-29",
-  "commit": "f26c8258",
-  "note": "Removed the CorsFilter (CorsConfig.java deleted) entirely instead of tightening it. SPA and API are same-origin in every env (prod/preprod/qa: same host under /api; dev: Angular dev-server proxies /api server-side); all other API callers are server-to-server. With no Access-Control-Allow-Origin emitted, browsers block all cross-origin requests by default - strictly stronger than an allowlist and eliminates the credentialed-wildcard CORS. Spring Security does not use .cors() and nothing referenced the bean."
- },
- "SEC-006": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "ee7a0974",
-  "note": "Code: removed trust-all TLS from both outbound REST clients. RestClient (git) and LicenseServerRestClient (license) now use the default HttpClients.custom().build() which validates certificate chain + hostname via the JVM trust store; deleted the accepting TrustStrategy, NoopHostnameVerifier, and the dead turnOffSslChecking()/UNQUESTIONING_TRUST_MANAGER. Dockerfile already free of 'http.sslVerify false'; git CLI (GitCLIDiffer) has no SSL override. Compiles clean. DevOps backlog: if the internal git/license endpoints present private/self-signed certs, import that CA into the JVM/host truststore or these outbound calls will fail after this change."
- },
- "SEC-007": {
-  "status": "Fixed",
-  "date": "2026-07-03",
-  "commit": "0ca41a10",
-  "note": "GitCLIDiffer no longer pipes an interpolated command stream into a shell (/bin/sh or cmd.exe). Rewrote doSend() to run each git step via an explicit argv ProcessBuilder (no shell parsing): git init/add/commit, then git push -f <url> HEAD:diff-branches --push-option=<to> --push-option=<from> with stderr redirected to result.txt via ProcessBuilder.redirectError (replacing the shell '2>result.txt'); the 'echo >> README.md' shell redirect is replaced by a Java Files.writeString. Added allowlist validation (^[A-Za-z0-9._/-]+$, no '..') on repoName/from/to before use, rejecting shell metacharacters/newlines/path-traversal. Removed getCLI()/shell, buildCommands(), the commands field, and the PUSH_DIFF_CMD interpolation. Compiles clean; git command semantics preserved (init/add/commit/push refspec + push-options unchanged), so behavior is equivalent - full runtime regression of the diff flow needs the git server + pre-receive hook. NOTE: Consts.PUSH_DIFF_CMD is now an unused dead template, left in place."
- },
- "SEC-008": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "1a55e365",
-  "note": "Code: SalesForceService.getContactId no longer concatenates the raw email into SOQL. Now escapes SOQL string-literal chars (backslash, single-quote) and URL-encodes the entire query via URLEncoder.encode(...UTF_8), so a crafted email cannot break out of the SOQL literal or inject extra query params. Compiles clean. Optional defense-in-depth not done: adding @Email + @Valid on the ticket-creation DTO/controller (would need spring-boot-starter-validation wired into netbrain-ticket); not required since the query building is now injection-safe."
- },
- "SEC-009": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "077712f1",
-  "note": "Resolved by design decision (product owner): KC uses role/permission-level (RBAC) authorization - holding a permission grants access to all resources of that type; there is no per-tenant/object isolation requirement, so object-level checks (the IDOR concern) are intentionally out of scope. Cleanup done: replaced the misleading misspelled #targert (which silently resolved to null and implied a non-existent object check) with an explicit null across all 83 @PreAuthorize expressions, so annotations honestly express permission-only checks. Kept hasPermission (not hasAuthority) to preserve the CustomPermissionEvaluator's per-request deactivated-user block, which IS load-bearing: verified that validateByToken does NOT re-check isInactive for an already-issued token, so the evaluator's check is the per-request gate (deactivated users are also blocked at login via isValidUIToken). If per-tenant isolation is ever required, implement the 3-arg evaluator (hasPermission(id, type, perm)) + service-layer entitlement checks."
- },
- "SEC-010": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-011": {
-  "status": "Fixed",
-  "date": "2026-06-29",
-  "commit": "d1674251",
-  "note": "Deleted APIInvokeLogAspect entirely (it existed only to dump request/response bodies, leaking JWT/reset-token/PII to logs). It was ad-hoc, scoped to just 5 consumer controllers, fired only on success (@AfterReturning - no failures/status), and carried a no-op @Around. No code referenced it. Uniform request/access logging + auth-failure monitoring should be handled by a real access log and the SEC-018/019 work, not this aspect."
- },
- "SEC-012": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-013": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-014": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-015": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "",
-  "note": "No developer/code change: the JDBC URL is no longer committed anywhere in the repo (verified via git grep) - the config restructure moved spring.datasource.url into Secrets Manager. So the code/repo portion is resolved. DevOps backlog (finding NOT neutralized until done): the Secrets Manager datasource URL still contains sslmode=require&sslfactory=org.postgresql.ssl.NonValidatingFactory, so DB TLS is still unauthenticated (MITM). Fix in Secrets Manager per env: remove sslfactory=NonValidatingFactory and set sslmode=verify-full with sslrootcert=<AWS RDS CA bundle>, and place the RDS CA bundle on the hosts/containers."
- },
- "SEC-016": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-017": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "5b522bb5",
-  "note": "Code: swapped non-crypto RandomStringUtils.random*() for the SecureRandom-backed RandomStringUtils.secure().next*() at all 4 security-token sites: password-reset token (AuthController), approval token (ApprovalToken), and the two customer-package passwords (AutoUpdateService). commons-lang3 3.17.0 (via Spring Boot 3.5 BOM) provides secure(). Kept the same charset/length (alphabetic/alphanumeric, 20 chars) so no format/DB-length change; only the RNG source changed from predictable to CSPRNG. Reset tokens already single-use (deleted after verify). Compiles clean."
- },
- "SEC-018": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "d6219947",
-  "note": "Code: (1) Added a dedicated actuator SecurityFilterChain (@Order(1), securityMatcher EndpointRequest.toAnyEndpoint()) that permits only /health (needed by the container HEALTHCHECK) and requires authentication for every other endpoint; removed the old .requestMatchers('/actuator/**').permitAll() from the main chain (now @Order(2)). (2) Locked web exposure to health ONLY (management.endpoints.web.exposure.include=health) with health show-details=never, so env/heapdump/configprops/beans/info are never exposed - info is excluded deliberately because build-info is generated and /actuator/info would otherwise disclose build/version metadata. (3) Removed the dead/misleading management.security.enabled, management.security.role, and (local-only) security.user.name/password props - no-ops in Spring Boot 3 (old Boot 1.x names) that only masqueraded as a control; the committed repo had no security.user.* (only the gitignored local file did). Compiles clean. DevOps backlog: bind the management port 8081 to localhost or drop the 8081 host mapping so actuator isn't reachable off-host."
- },
- "SEC-019": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-020": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-021": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-022": {
-  "status": "Fixed",
-  "date": "2026-06-30",
-  "commit": "e496af9b",
-  "note": "Externalized the S3 pre-signed URL TTL: AWSClient no longer hardcodes Duration.ofHours(6); it reads a new dedicated property application.package.downloadLink.presignedUrlExpireMinutes (default 360=6h), clamped to the valid S3 range [1min,7days]. NOTE: audit premise corrected - expireMinutes is the package *regeneration cadence* (short in dev/qa for fresh rebuilds, longer in prod), NOT the URL lifetime, so the two are intentionally separate and were NOT coupled (coupling would make dev URLs expire instantly). The real gap was the hardcoded/un-governed TTL; now configurable + documented, so C1.2 is satisfied. 6h retained as the deliberate customer download grace period; per-env override via ECS env var."
- },
- "SEC-023": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "045d15af",
-  "note": "Removed the finding entirely by deleting the unused GitHubWebhookController (a prototype stub: it only verified the signature and returned ok/badRequest, triggered no downstream processing, and nothing referenced it). Also removed its now-dead '/webhooks' permitAll matcher in WebSecurityConfig. This eliminates the hardcoded 'netbrain' HMAC secret, the non-constant-time comparison, the signature logging, and the unguarded index/DoS path. DevOps 'rotate netbrain webhook secret' is now MOOT (no secret in code). CommonUtils.hmacWithJava is now unused but left in place as a generic util. If webhooks are needed later, re-add with @Value-injected secret + MessageDigest.isEqual per the original remediation."
- },
- "SEC-024": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-025": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-026": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-027": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-028": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-029": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-030": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "2caf39a5",
-  "note": "Code: removed cleartext secret logging. SalesForceService no longer logs the Salesforce OAuth access token (replaced 'Access Token: '+token with a non-sensitive 'authentication succeeded' message). TokenValidator no longer logs the raw license key on parse failure; both sinks now log the licenseId (safe customer identifier, for debuggability) + exception class name, never licenseKeyString and not the raw Jackson message which can echo input. Grep confirms no accessToken/licenseKeyString in any log statement; compiles clean. DevOps backlog: scrub historical kc.log files that already captured tokens/keys, and treat any tokens previously logged as exposed (ties into the SEC-001 secret rotation)."
- },
- "SEC-031": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-032": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-033": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-034": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-035": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-036": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "d4cc787b",
-  "note": "Two parts. (1) Substring-vs-equality permission check: fixed by the shared CustomPermissionEvaluator contains()->equals() change in SEC-062 (d4cc787b), with denial regression test. (2) 'Write/sync operations lack method-level authorization' (syncRepo /repos/common-repo, syncDeltaChangeByReleaseId /repos/releases/{id}): assessed as a FALSE POSITIVE per product-owner domain knowledge - these PATCH endpoints do not write to the git repo; they only trigger KC's existing scheduled GitHub pull/delta-generation earlier than the interval (a refresh action), so the class-level read permission (PERMISSION_COMMON_R) is the correct/legitimate control. No _RW requirement added. Both concerns resolved; no additional code change beyond SEC-062."
- },
- "SEC-037": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-038": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-039": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-040": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-041": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-042": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-043": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-044": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-045": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-046": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-047": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-048": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-049": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-050": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-051": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-052": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-053": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-054": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-055": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-056": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-057": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-058": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-059": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-060": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-061": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-062": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "d4cc787b",
-  "note": "CustomPermissionEvaluator.hasPrivilege changed from substring match (grantedAuth.getAuthority().contains(permission)) to exact equals(). Verified the model is exact-string RBAC: authorities are SimpleGrantedAuthority(exact permission name) and checks use the same Constants.PERMISSION_* strings, so equals() keeps all legitimate access and removes the substring over-grant. Added CustomPermissionEvaluatorTest (JUnit 5, 3 tests incl. the required denial regression: a substring of a granted authority is denied) - all pass. Also covers the substring-match portion of SEC-036 (its separate 'add method-level authz to write/sync ops' part remains). The other .contains() hit (GitCollaborator) is Set.contains(element) = correct exact membership, not a vuln."
- },
- "SEC-072": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "077712f1",
-  "note": "Same root issue as SEC-009, at the evaluator level (CustomPermissionEvaluator ignores the target object). Resolved by the same product-owner design decision: KC uses role/permission-level (RBAC) authorization with no per-tenant/object isolation requirement, so object-level tenant checks are intentionally out of scope. The two concrete defects in this finding's evidence are addressed: (1) substring match getAuthority().contains() -> exact equals() in SEC-062 (d4cc787b) with a denial test; (2) the misleading #targert dead target -> explicit null across all @PreAuthorize in SEC-009 (077712f1). No additional code under the RBAC model. If per-tenant isolation is ever required, reimplement the evaluator to load the target by id and verify tenant membership (the 3-arg overload) + add a tenant A-vs-B test matrix. See [[SEC-009]] and [[SEC-062]]."
- },
- "SEC-073": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-074": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-076": {
-  "status": "Fixed",
-  "date": "2026-07-02",
-  "commit": "157d4fef",
-  "note": "Peer-review enforcement (CC8.1). Branch protection (require PR + non-author approval) enabled at the repo level per the team - this satisfies the core CC8.1 control. Added real PR templates with a review + security checklist to both repos: kc-backend (157d4fef, soc2-prep) and kc-web (e95b533, soc2-prep branch; replaces the 22-byte stub). CODEOWNERS intentionally skipped for now (branch protection already requires a non-author review); can be added later for path-based routing of security-sensitive files. DevOps evidence task remaining: export and retain the branch-protection ruleset for both repos as SOC2 audit evidence."
- },
- "SEC-063": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-064": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-066": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-068": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-069": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-070": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-071": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-075": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-077": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-078": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-079": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-080": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-081": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-083": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-085": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-086": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-087": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-088": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-089": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-090": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-067": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-082": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-084": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- },
- "SEC-065": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
- }
+  "SEC-001": {
+    "status": "Fixed",
+    "date": "2026-06-30",
+    "commit": "fb8e2d92",
+    "note": "Code: removed the hardcoded JWT HMAC secret literal ('netbrain-knowledge-cloud') and 'do not modify' comment from JwtToken; signing key now sourced from config property jwt.secret via new JwtTokenConfigurer (@PostConstruct -> JwtToken.initAlgorithm), no default so a missing key fails fast. Kept HMAC256 (symmetric externalize); asymmetric RS256/ES256 is a larger optional follow-up. Local dev key in gitignored application-local.properties. PREREQUISITE/DevOps backlog: add a random >=256-bit jwt.secret per environment to AWS Secrets Manager BEFORE deploying (app won't start without it), rotate to invalidate all existing forged/old tokens (coordinated redeploy), and purge the old literal from git history."
+  },
+  "SEC-002": {
+    "status": "Fixed",
+    "date": "2026-06-29",
+    "commit": "296a023e",
+    "note": "Code: replaced hardcoded git.token in application.properties.template with jasypt encrypted placeholder (sourced from secret store); Dockerfile already free of git-credential echo. DevOps backlog: rotate kc PAT (shihui account already suspended), purge git history (secret still in commit 8a687a99), inject git auth from Secrets Manager."
+  },
+  "SEC-003": {
+    "status": "Fixed",
+    "date": "2026-06-30",
+    "commit": "",
+    "note": "Code/repo portion already resolved by the config restructure (develop merge), verified: server.jks + private_key.der are no longer git-tracked and not on disk; .gitignore now covers them (*.der, config/*.jks); no tracked file carries the plaintext keystore password (config/application.properties uses ${SERVER_SSL_KEY_STORE_PASSWORD}; keystore path/key delivered at runtime). No further developer change needed. DevOps backlog REMAINS: rotate the TLS cert/keypair + DER key + keystore password (still 'netbrain', confirmed live in Secrets Manager) and purge both files + the password from git history."
+  },
+  "SEC-004": {
+    "status": "Fixed",
+    "date": "2026-06-30",
+    "commit": "9e622a95",
+    "note": "Code: deleted the dead ShareFileV3.main() demo harness that hardcoded ShareFile creds (evan.bi / Netbrain1) + OAuth clientId/clientSecret; it was if(false) scaffolding with local C:\\temp paths, not a prod entry point, and nothing referenced it. Secret values now absent from the working tree; module compiles. DevOps backlog: rotate the ShareFile account password + OAuth client secret (needs ShareFile admin) and purge both from git history."
+  },
+  "SEC-005": {
+    "status": "Fixed",
+    "date": "2026-06-29",
+    "commit": "f26c8258",
+    "note": "Removed the CorsFilter (CorsConfig.java deleted) entirely instead of tightening it. SPA and API are same-origin in every env (prod/preprod/qa: same host under /api; dev: Angular dev-server proxies /api server-side); all other API callers are server-to-server. With no Access-Control-Allow-Origin emitted, browsers block all cross-origin requests by default - strictly stronger than an allowlist and eliminates the credentialed-wildcard CORS. Spring Security does not use .cors() and nothing referenced the bean."
+  },
+  "SEC-006": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "ee7a0974",
+    "note": "Code: removed trust-all TLS from both outbound REST clients. RestClient (git) and LicenseServerRestClient (license) now use the default HttpClients.custom().build() which validates certificate chain + hostname via the JVM trust store; deleted the accepting TrustStrategy, NoopHostnameVerifier, and the dead turnOffSslChecking()/UNQUESTIONING_TRUST_MANAGER. Dockerfile already free of 'http.sslVerify false'; git CLI (GitCLIDiffer) has no SSL override. Compiles clean. DevOps backlog: if the internal git/license endpoints present private/self-signed certs, import that CA into the JVM/host truststore or these outbound calls will fail after this change."
+  },
+  "SEC-007": {
+    "status": "Fixed",
+    "date": "2026-07-07",
+    "commit": "0ca41a10, a246afd2",
+    "note": "GitCLIDiffer no longer pipes an interpolated command stream into a shell (/bin/sh or cmd.exe). Rewrote doSend() to run each git step via an explicit argv ProcessBuilder (no shell parsing): git init/add/commit, then git push -f <url> HEAD:diff-branches --push-option=<to> --push-option=<from> with stderr redirected to result.txt via ProcessBuilder.redirectError (replacing the shell '2>result.txt'); the 'echo >> README.md' shell redirect is replaced by a Java Files.writeString. Added allowlist validation (^[A-Za-z0-9._/-]+$, no '..') on repoName/from/to before use, rejecting shell metacharacters/newlines/path-traversal. Removed getCLI()/shell, buildCommands(), the commands field, and the PUSH_DIFF_CMD interpolation. Compiles clean; git command semantics preserved (init/add/commit/push refspec + push-options unchanged), so behavior is equivalent - full runtime regression of the diff flow needs the git server + pre-receive hook. NOTE: Consts.PUSH_DIFF_CMD is now an unused dead template, left in place. FOLLOW-UP (a246afd2, 2026-07-07): the git diff work-tree base dir was hardcoded relative (\"diff\"), resolving to /app/diff under the container WORKDIR. Moved it to a config-driven storage.diff-dir (default /data/diff) via a new GitCLIDiffer.homeDir(..) builder step wired from DeltaChangeService, matching storage.upload-temp-dir/download-cache-dir. This is a read-only-root CORRECTNESS fix, not just cleanup: worked for years on the writable EC2 filesystem, but on the new ECS deployment (readonlyRootFilesystem) a relative write to /app/diff fails, making doSend() return false and diffs come back silently empty. /data is a writable, appuser-owned volume, so the diff flow survives read-only root. ACTION: regression-test the delta-change/diff flow end-to-end on ECS and confirm a writable volume backs /data. No dedicated SEC finding exists for readonlyRootFilesystem (nearest container item is SEC-026: non-root USER + image provenance, distinct)."
+  },
+  "SEC-008": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "1a55e365",
+    "note": "Code: SalesForceService.getContactId no longer concatenates the raw email into SOQL. Now escapes SOQL string-literal chars (backslash, single-quote) and URL-encodes the entire query via URLEncoder.encode(...UTF_8), so a crafted email cannot break out of the SOQL literal or inject extra query params. Compiles clean. Optional defense-in-depth not done: adding @Email + @Valid on the ticket-creation DTO/controller (would need spring-boot-starter-validation wired into netbrain-ticket); not required since the query building is now injection-safe."
+  },
+  "SEC-009": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "077712f1",
+    "note": "Resolved by design decision (product owner): KC uses role/permission-level (RBAC) authorization - holding a permission grants access to all resources of that type; there is no per-tenant/object isolation requirement, so object-level checks (the IDOR concern) are intentionally out of scope. Cleanup done: replaced the misleading misspelled #targert (which silently resolved to null and implied a non-existent object check) with an explicit null across all 83 @PreAuthorize expressions, so annotations honestly express permission-only checks. Kept hasPermission (not hasAuthority) to preserve the CustomPermissionEvaluator's per-request deactivated-user block, which IS load-bearing: verified that validateByToken does NOT re-check isInactive for an already-issued token, so the evaluator's check is the per-request gate (deactivated users are also blocked at login via isValidUIToken). If per-tenant isolation is ever required, implement the 3-arg evaluator (hasPermission(id, type, perm)) + service-layer entitlement checks."
+  },
+  "SEC-010": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-011": {
+    "status": "Fixed",
+    "date": "2026-06-29",
+    "commit": "d1674251",
+    "note": "Deleted APIInvokeLogAspect entirely (it existed only to dump request/response bodies, leaking JWT/reset-token/PII to logs). It was ad-hoc, scoped to just 5 consumer controllers, fired only on success (@AfterReturning - no failures/status), and carried a no-op @Around. No code referenced it. Uniform request/access logging + auth-failure monitoring should be handled by a real access log and the SEC-018/019 work, not this aspect."
+  },
+  "SEC-012": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-013": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-014": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-015": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "",
+    "note": "No developer/code change: the JDBC URL is no longer committed anywhere in the repo (verified via git grep) - the config restructure moved spring.datasource.url into Secrets Manager. So the code/repo portion is resolved. DevOps backlog (finding NOT neutralized until done): the Secrets Manager datasource URL still contains sslmode=require&sslfactory=org.postgresql.ssl.NonValidatingFactory, so DB TLS is still unauthenticated (MITM). Fix in Secrets Manager per env: remove sslfactory=NonValidatingFactory and set sslmode=verify-full with sslrootcert=<AWS RDS CA bundle>, and place the RDS CA bundle on the hosts/containers."
+  },
+  "SEC-016": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-017": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "5b522bb5",
+    "note": "Code: swapped non-crypto RandomStringUtils.random*() for the SecureRandom-backed RandomStringUtils.secure().next*() at all 4 security-token sites: password-reset token (AuthController), approval token (ApprovalToken), and the two customer-package passwords (AutoUpdateService). commons-lang3 3.17.0 (via Spring Boot 3.5 BOM) provides secure(). Kept the same charset/length (alphabetic/alphanumeric, 20 chars) so no format/DB-length change; only the RNG source changed from predictable to CSPRNG. Reset tokens already single-use (deleted after verify). Compiles clean."
+  },
+  "SEC-018": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "d6219947",
+    "note": "Code: (1) Added a dedicated actuator SecurityFilterChain (@Order(1), securityMatcher EndpointRequest.toAnyEndpoint()) that permits only /health (needed by the container HEALTHCHECK) and requires authentication for every other endpoint; removed the old .requestMatchers('/actuator/**').permitAll() from the main chain (now @Order(2)). (2) Locked web exposure to health ONLY (management.endpoints.web.exposure.include=health) with health show-details=never, so env/heapdump/configprops/beans/info are never exposed - info is excluded deliberately because build-info is generated and /actuator/info would otherwise disclose build/version metadata. (3) Removed the dead/misleading management.security.enabled, management.security.role, and (local-only) security.user.name/password props - no-ops in Spring Boot 3 (old Boot 1.x names) that only masqueraded as a control; the committed repo had no security.user.* (only the gitignored local file did). Compiles clean. DevOps backlog: bind the management port 8081 to localhost or drop the 8081 host mapping so actuator isn't reachable off-host."
+  },
+  "SEC-019": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-020": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-021": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-022": {
+    "status": "Fixed",
+    "date": "2026-06-30",
+    "commit": "e496af9b",
+    "note": "Externalized the S3 pre-signed URL TTL: AWSClient no longer hardcodes Duration.ofHours(6); it reads a new dedicated property application.package.downloadLink.presignedUrlExpireMinutes (default 360=6h), clamped to the valid S3 range [1min,7days]. NOTE: audit premise corrected - expireMinutes is the package *regeneration cadence* (short in dev/qa for fresh rebuilds, longer in prod), NOT the URL lifetime, so the two are intentionally separate and were NOT coupled (coupling would make dev URLs expire instantly). The real gap was the hardcoded/un-governed TTL; now configurable + documented, so C1.2 is satisfied. 6h retained as the deliberate customer download grace period; per-env override via ECS env var."
+  },
+  "SEC-023": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "045d15af",
+    "note": "Removed the finding entirely by deleting the unused GitHubWebhookController (a prototype stub: it only verified the signature and returned ok/badRequest, triggered no downstream processing, and nothing referenced it). Also removed its now-dead '/webhooks' permitAll matcher in WebSecurityConfig. This eliminates the hardcoded 'netbrain' HMAC secret, the non-constant-time comparison, the signature logging, and the unguarded index/DoS path. DevOps 'rotate netbrain webhook secret' is now MOOT (no secret in code). CommonUtils.hmacWithJava is now unused but left in place as a generic util. If webhooks are needed later, re-add with @Value-injected secret + MessageDigest.isEqual per the original remediation."
+  },
+  "SEC-024": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-025": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-026": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-027": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-028": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-029": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-030": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "2caf39a5",
+    "note": "Code: removed cleartext secret logging. SalesForceService no longer logs the Salesforce OAuth access token (replaced 'Access Token: '+token with a non-sensitive 'authentication succeeded' message). TokenValidator no longer logs the raw license key on parse failure; both sinks now log the licenseId (safe customer identifier, for debuggability) + exception class name, never licenseKeyString and not the raw Jackson message which can echo input. Grep confirms no accessToken/licenseKeyString in any log statement; compiles clean. DevOps backlog: scrub historical kc.log files that already captured tokens/keys, and treat any tokens previously logged as exposed (ties into the SEC-001 secret rotation)."
+  },
+  "SEC-031": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-032": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-033": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-034": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-035": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-036": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "d4cc787b",
+    "note": "Two parts. (1) Substring-vs-equality permission check: fixed by the shared CustomPermissionEvaluator contains()->equals() change in SEC-062 (d4cc787b), with denial regression test. (2) 'Write/sync operations lack method-level authorization' (syncRepo /repos/common-repo, syncDeltaChangeByReleaseId /repos/releases/{id}): assessed as a FALSE POSITIVE per product-owner domain knowledge - these PATCH endpoints do not write to the git repo; they only trigger KC's existing scheduled GitHub pull/delta-generation earlier than the interval (a refresh action), so the class-level read permission (PERMISSION_COMMON_R) is the correct/legitimate control. No _RW requirement added. Both concerns resolved; no additional code change beyond SEC-062."
+  },
+  "SEC-037": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-038": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-039": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-040": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-041": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-042": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-043": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-044": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-045": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-046": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-047": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-048": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-049": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-050": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-051": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-052": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-053": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-054": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-055": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-056": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-057": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-058": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-059": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-060": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-061": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-062": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "d4cc787b",
+    "note": "CustomPermissionEvaluator.hasPrivilege changed from substring match (grantedAuth.getAuthority().contains(permission)) to exact equals(). Verified the model is exact-string RBAC: authorities are SimpleGrantedAuthority(exact permission name) and checks use the same Constants.PERMISSION_* strings, so equals() keeps all legitimate access and removes the substring over-grant. Added CustomPermissionEvaluatorTest (JUnit 5, 3 tests incl. the required denial regression: a substring of a granted authority is denied) - all pass. Also covers the substring-match portion of SEC-036 (its separate 'add method-level authz to write/sync ops' part remains). The other .contains() hit (GitCollaborator) is Set.contains(element) = correct exact membership, not a vuln."
+  },
+  "SEC-072": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "077712f1",
+    "note": "Same root issue as SEC-009, at the evaluator level (CustomPermissionEvaluator ignores the target object). Resolved by the same product-owner design decision: KC uses role/permission-level (RBAC) authorization with no per-tenant/object isolation requirement, so object-level tenant checks are intentionally out of scope. The two concrete defects in this finding's evidence are addressed: (1) substring match getAuthority().contains() -> exact equals() in SEC-062 (d4cc787b) with a denial test; (2) the misleading #targert dead target -> explicit null across all @PreAuthorize in SEC-009 (077712f1). No additional code under the RBAC model. If per-tenant isolation is ever required, reimplement the evaluator to load the target by id and verify tenant membership (the 3-arg overload) + add a tenant A-vs-B test matrix. See [[SEC-009]] and [[SEC-062]]."
+  },
+  "SEC-073": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-074": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-076": {
+    "status": "Fixed",
+    "date": "2026-07-02",
+    "commit": "157d4fef",
+    "note": "Peer-review enforcement (CC8.1). Branch protection (require PR + non-author approval) enabled at the repo level per the team - this satisfies the core CC8.1 control. Added real PR templates with a review + security checklist to both repos: kc-backend (157d4fef, soc2-prep) and kc-web (e95b533, soc2-prep branch; replaces the 22-byte stub). CODEOWNERS intentionally skipped for now (branch protection already requires a non-author review); can be added later for path-based routing of security-sensitive files. DevOps evidence task remaining: export and retain the branch-protection ruleset for both repos as SOC2 audit evidence."
+  },
+  "SEC-063": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-064": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-066": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-068": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-069": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-070": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-071": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-075": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-077": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-078": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-079": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-080": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-081": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-083": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-085": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-086": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-087": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-088": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-089": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-090": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-067": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-082": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-084": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  },
+  "SEC-065": {
+    "status": "Open",
+    "date": "",
+    "commit": "",
+    "note": ""
+  }
 }
