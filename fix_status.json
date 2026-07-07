@@ -102,10 +102,10 @@
   "note": "Code: swapped non-crypto RandomStringUtils.random*() for the SecureRandom-backed RandomStringUtils.secure().next*() at all 4 security-token sites: password-reset token (AuthController), approval token (ApprovalToken), and the two customer-package passwords (AutoUpdateService). commons-lang3 3.17.0 (via Spring Boot 3.5 BOM) provides secure(). Kept the same charset/length (alphabetic/alphanumeric, 20 chars) so no format/DB-length change; only the RNG source changed from predictable to CSPRNG. Reset tokens already single-use (deleted after verify). Compiles clean."
  },
  "SEC-018": {
-  "status": "Open",
-  "date": "",
-  "commit": "",
-  "note": ""
+  "status": "Fixed",
+  "date": "2026-07-02",
+  "commit": "807362c3",
+  "note": "Code: (1) Added a dedicated actuator SecurityFilterChain (@Order(1), securityMatcher EndpointRequest.toAnyEndpoint()) that permits only /health (needed by the container HEALTHCHECK) and requires authentication for every other endpoint; removed the old .requestMatchers('/actuator/**').permitAll() from the main chain (now @Order(2)). (2) Locked web exposure to health,info and set health show-details=never in config/application.properties + application-local.properties, so env/heapdump/configprops/beans are never exposed. (3) Removed the dead/misleading management.security.enabled, management.security.role, and (local-only) security.user.name/password props - these are no-ops in Spring Boot 3 (old Boot 1.x property names) and were only masquerading as a control; note the committed repo had no security.user.* (only the gitignored local file did). Compiles clean. DevOps backlog: bind the management port 8081 to localhost or drop the 8081 host mapping in the container/compose so actuator isn't reachable off-host."
  },
  "SEC-019": {
   "status": "Open",
