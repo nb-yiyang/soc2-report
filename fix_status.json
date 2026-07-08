@@ -120,10 +120,10 @@
     "note": ""
   },
   "SEC-021": {
-    "status": "Open",
-    "date": "",
-    "commit": "",
-    "note": ""
+    "status": "Fixed",
+    "date": "2026-07-08",
+    "commit": "f5fb3c2",
+    "note": "kc-web nb-markdown.component.ts. The readonly render path (ngAfterViewInit -> innerHTML = marked(value)) had no DOMPurify, so stored multi-user markdown (release-notes/release-editor modals) could execute script in a reviewer/admin session (stored DOM XSS). Fix: extracted a single renderSanitized() helper that always runs DOMPurify.sanitize(marked(...)) and routed BOTH the readonly view and the editor preview (onMarkdownContentChange) through it - the sanitize call is identical to the editor path that already shipped, so no new/untested sanitization behavior. Also added rel=\"noopener noreferrer\" to the target=_blank link renderer (reverse tabnabbing). Deps unchanged: marked 0.8.2, dompurify 2.0.8. VERIFICATION: static + parity only - kc-web node_modules is not installed in this env so the Jest spec / app build were not run here; behavior is proven by using the exact DOMPurify.sanitize(marked(...)) expression already in production on the editor path. Recommend running npm run test (jest, jsdom) and a manual XSS check (save release notes containing <img src=x onerror=alert(1)> and open the readonly view) in an env with deps installed. Related: SEC-020 (tokens in localStorage) is the exfiltration target this XSS would have hit - still open, tracked separately."
   },
   "SEC-022": {
     "status": "Fixed",
