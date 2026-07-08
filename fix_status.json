@@ -378,10 +378,10 @@
     "note": "Same root issue as SEC-009, at the evaluator level (CustomPermissionEvaluator ignores the target object). Resolved by the same product-owner design decision: KC uses role/permission-level (RBAC) authorization with no per-tenant/object isolation requirement, so object-level tenant checks are intentionally out of scope. The two concrete defects in this finding's evidence are addressed: (1) substring match getAuthority().contains() -> exact equals() in SEC-062 (d4cc787b) with a denial test; (2) the misleading #targert dead target -> explicit null across all @PreAuthorize in SEC-009 (077712f1). No additional code under the RBAC model. If per-tenant isolation is ever required, reimplement the evaluator to load the target by id and verify tenant membership (the 3-arg overload) + add a tenant A-vs-B test matrix. See [[SEC-009]] and [[SEC-062]]."
   },
   "SEC-073": {
-    "status": "Open",
-    "date": "",
-    "commit": "",
-    "note": ""
+    "status": "Fixed",
+    "date": "2026-07-08",
+    "commit": "85fc7c55",
+    "note": "Largely BY DESIGN / false positive, with one hardening guard applied. Identity model: customers authenticate only as PROXY/TICKET tokens, which are license-bound (TokenValidator.createProxyToken sets principal.id=licenseId) and carry ONLY the KC Proxy / Netbrain Ticket authority. None of the package-download endpoints (generateArbitraryResources/ branch, updates, target-download v1/v2, getPackageInfo) accept those authorities - they require customer:r (internal 'View Customer Info' UI perm), ci:cd, license:server, or netbrain:portal. The latter three are NetBrain-infra service identities (fixed principals, not license-bound, not customer-obtainable, and not forgeable once SEC-001 fixed the JWT secret); their cross-license download is intended (they serve all customers), and a downloaded package cannot be used in another environment because import enforces an environment check (compensating control confirmed by product owner). The stale #targert SpEL cited in the finding was already fixed by SEC-009 (now null). HARDENING: the one customer-reachable endpoint, the @deprecated checkingUpdate (KC Proxy, legacy IE 8.0.0x), previously trusted the path licenseId without binding it to the caller; added SpEL guard #licenseId == authentication.principal.id so a proxy for license A cannot query/overwrite license B. Server-side only - endpoint contract unchanged, deprecated clients calling their own license are unaffected. It was not a package-download endpoint (returns SyncUpResponse availability + updates the IE-version record), so residual impact was minor even before the guard."
   },
   "SEC-074": {
     "status": "Open",
