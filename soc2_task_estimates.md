@@ -46,7 +46,7 @@
 | SEC-021 | Fixed | High | Frontend | G20 | 0.25–0.5 | High |  | nb-markdown renders user-authored markdown to innerHTML WITHOUT sanitization on the readonly path (stored DOM XSS) |
 | SEC-022 | Fixed | High | Backend | G20 | 0.25 | High |  | S3 pre-signed download URLs hardcoded to 6-hour validity, ignoring configured link-expiry policy |
 | SEC-023 | Fixed | High | Backend | G1 | 0.25–0.5 | High | 1 | Hardcoded GitHub webhook HMAC secret 'netbrain', non-constant-time comparison, and signature logging |
-| SEC-024 | Open | High | Backend | G16 | 1–3 | Discuss | 1 | fastjson 1.2.83 (EOL) and EOL/vulnerable frontend production dependencies shipped to production |
+| SEC-024 | In Progress | High | Backend | G16 | 1–3 | Discuss | 1 | fastjson 1.2.83 (EOL) and EOL/vulnerable frontend production dependencies shipped to production |
 | SEC-025 | Open | High | CI-CD | G17 | 0.5–1 | Medium | 1 | No SAST quality gate, SCA, or secret scanning in either CI pipeline |
 | SEC-026 | Open | High | CI-CD | G17 | 0.5–1 | Medium | 2 | Deployment compose pulls application images from personal Docker Hub namespaces; EOL/unpinned base images; containers run as root |
 | SEC-027 | Open | High | Backend | G19 | 0.5–1 | Medium | 1 | Customer support-ticket PII has no enforced deletion/retention despite a 'delete when resolved' flag; expired tokens never purged |
@@ -317,7 +317,7 @@
 ### SEC-024 — fastjson 1.2.83 (EOL) and EOL/vulnerable frontend production dependencies shipped to production
 
 - **High / Backend** · SOC 2 CC7.1 · Group G16 Dependency upgrades
-- **Status:** Open
+- **Status:** In Progress (2026-07-09, 3d16e4e, c99ca1f) — PARTIAL - low-risk frontend deps done; heavy items + backend fastjson deferred. DONE (kc-web, verified by production build + jest): dompurify 2.5.9 -> 3.4.11 (the security-relevant one - it is the XSS sanitizer behind SEC-021; a jsdom unit test now asserts onerror/javascript:/<script> are stripped) and removed EOL core-js 2.x (only active use was core-js/es7/reflect in polyfills.ts, unnecessary under Angular AOT/Ivy; core-js remains only as a transitive dep of build tooling). Also repaired the nb-markdown spec that the Angular 21 upgrade had broken (NG0304 tabset / i18n pipe). ALREADY SATISFIED by the prior Angular upgrade: rxjs at 7.8 (target 7.x). NOT NEEDED: ua-parser-js already resolves to 0.7.41 (latest patched 0.7.x); jumping to 2.x is churn with no known-CVE benefit - defer to the SCA result. DEFERRED (heavy / breaking, scope separately): marked 0.8 -> 4.x+ is a breaking renderer API change that re-touches the just-fixed SEC-021 component; bootstrap 4 -> 5 is a large UI regression across the app. DEFERRED (backend, the real security weight, conf=Discuss): migrate fastjson 1.2.83 off (Jackson or fastjson2+safeMode). Latent AutoType RCE-gadget surface; currently NOT reachable (the byte[]->class parseObject sink has no callers), so no active hole - but scope the migration before touching pom.xml:34. OPS (opsEn): re-run SCA after the upgrades - that produces the authoritative CVE list and is the actual SOC2 vulnerability-management control; the remaining EOL libs (bootstrap/ marked/core-js-transitive) are managed-backlog items, not active exploitable holes.
 - **Code estimate:** 1–3 dev-days · **Confidence:** Discuss
 - **Code work:** Code: migrate fastjson 1.x off (standardize on Jackson, or fastjson2 with safeMode) — touches every fastjson usage — and bump marked/dompurify/bootstrap/rxjs/core-js. Heavy regression; scope the fastjson migration before committing.
 - **Non-code tasks (handled separately):**
@@ -895,7 +895,7 @@
 | SEC-018 | Fixed | Bind the management port to localhost or drop the 8081 host mapping (compose) |
 | SEC-019 | Open | Optionally add nginx limit_req/limit_conn (config) |
 | SEC-023 | Fixed | Store a high-entropy webhook secret in the secret store and rotate "netbrain" |
-| SEC-024 | Open | Re-run SCA after the upgrades |
+| SEC-024 | In Progress | Re-run SCA after the upgrades |
 | SEC-025 | Open | Enable Dependabot/Renovate on both repos |
 | SEC-026 | Open | Stand up an org-owned private registry (ECR) with immutable tags + signing (cosign) |
 | SEC-026 | Open | Add image scanning (Trivy/Grype) and scope CodeDeploy hooks to least privilege |

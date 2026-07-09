@@ -138,10 +138,10 @@
     "note": "Removed the finding entirely by deleting the unused GitHubWebhookController (a prototype stub: it only verified the signature and returned ok/badRequest, triggered no downstream processing, and nothing referenced it). Also removed its now-dead '/webhooks' permitAll matcher in WebSecurityConfig. This eliminates the hardcoded 'netbrain' HMAC secret, the non-constant-time comparison, the signature logging, and the unguarded index/DoS path. DevOps 'rotate netbrain webhook secret' is now MOOT (no secret in code). CommonUtils.hmacWithJava is now unused but left in place as a generic util. If webhooks are needed later, re-add with @Value-injected secret + MessageDigest.isEqual per the original remediation."
   },
   "SEC-024": {
-    "status": "Open",
-    "date": "",
-    "commit": "",
-    "note": ""
+    "status": "In Progress",
+    "date": "2026-07-09",
+    "commit": "3d16e4e, c99ca1f",
+    "note": "PARTIAL - low-risk frontend deps done; heavy items + backend fastjson deferred. DONE (kc-web, verified by production build + jest): dompurify 2.5.9 -> 3.4.11 (the security-relevant one - it is the XSS sanitizer behind SEC-021; a jsdom unit test now asserts onerror/javascript:/<script> are stripped) and removed EOL core-js 2.x (only active use was core-js/es7/reflect in polyfills.ts, unnecessary under Angular AOT/Ivy; core-js remains only as a transitive dep of build tooling). Also repaired the nb-markdown spec that the Angular 21 upgrade had broken (NG0304 tabset / i18n pipe). ALREADY SATISFIED by the prior Angular upgrade: rxjs at 7.8 (target 7.x). NOT NEEDED: ua-parser-js already resolves to 0.7.41 (latest patched 0.7.x); jumping to 2.x is churn with no known-CVE benefit - defer to the SCA result. DEFERRED (heavy / breaking, scope separately): marked 0.8 -> 4.x+ is a breaking renderer API change that re-touches the just-fixed SEC-021 component; bootstrap 4 -> 5 is a large UI regression across the app. DEFERRED (backend, the real security weight, conf=Discuss): migrate fastjson 1.2.83 off (Jackson or fastjson2+safeMode). Latent AutoType RCE-gadget surface; currently NOT reachable (the byte[]->class parseObject sink has no callers), so no active hole - but scope the migration before touching pom.xml:34. OPS (opsEn): re-run SCA after the upgrades - that produces the authoritative CVE list and is the actual SOC2 vulnerability-management control; the remaining EOL libs (bootstrap/ marked/core-js-transitive) are managed-backlog items, not active exploitable holes."
   },
   "SEC-025": {
     "status": "Open",
