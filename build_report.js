@@ -71,10 +71,12 @@ const fixedN = ids.filter(id => st(id) === 'Fixed').length;
 const realisticLo = Math.round(A.all.lo * 0.85), realisticHi = Math.round(A.all.hi * 0.85);
 
 const sevR = { Critical: 0, High: 1, Medium: 2, Low: 3, Info: 4 };
+const effR = { High: 0, Medium: 1, Low: 2 };
 const L10N = {
   en: {
     note: 'Engineer-days for the frontend/backend code change only (one developer familiar with the codebase). DevOps / AWS / credential-rotation / policy work is tracked separately in the DevOps backlog below and is NOT included. Summing rows double-counts shared work.',
     bigNote: 'Every finding estimated above 1 dev-day — the cross-cutting or front↔back / 3rd-party integration work. Click a task ID to jump to its full detail.',
+    deferredNote: 'Findings that have been analysed and triaged but whose implementation was consciously deferred (decision recorded in the note). Still counted as Open — not fixed. Click a task ID for the full deferral rationale.',
     devNote: 'Tasks that are NOT developer code work but are needed to fully close a finding — credential rotation, git-history purges, AWS/infra config, policy decisions. A finding is only fully closed once both its code fix AND these are done.',
     cards: [
       { value: fixedN + ' / 90', label: 'Findings code-fixed' },
@@ -91,6 +93,7 @@ const L10N = {
   zh: {
     note: '仅为前端/后端代码改动的工程师人天（一名熟悉代码库的开发者）。DevOps / AWS / 凭据轮换 / 策略类工作在下方 DevOps 待办中单独跟踪，不计入此处。',
     bigNote: '所有估算超过 1 人天的问题——属跨切面或前后端/第三方集成类工作。点击任务编号可跳转到完整详情。',
+    deferredNote: '已分析并完成分诊、但有意推迟实现的问题（推迟决定已记录于备注）。仍计为未处理（Open），非已修复。点击任务编号查看完整的推迟理由。',
     devNote: '这些不是开发代码工作，但是彻底关闭问题所需——凭据轮换、Git 历史清理、AWS/基础设施配置、策略决策。只有代码修复与这些都完成，问题才算彻底关闭。',
     cards: [
       { value: fixedN + ' / 90', label: '已修复（代码）' },
@@ -109,10 +112,28 @@ const L10N = {
   const t = L10N[lang];
   const bigTasks = REPORT_DATA[lang].findings
     .filter(f => EST[f.id].d[1] > 1)
-    .sort((a, b) => { const da = EST[a.id].d, db = EST[b.id].d; const m = (db[0] + db[1]) - (da[0] + da[1]); return m || (sevR[a.severity] - sevR[b.severity]); })
-    .map(f => { const e = EST[f.id]; return { id: f.id, severity: f.severity, component: f.component, est: rangeStr(e.d, lang), conf: CONF[e.conf][lang], group: GROUPS[e.g][lang], title: f.title, reason: e[lang] }; });
+    .sort((a, b) => {
+      const s = sevR[a.severity] - sevR[b.severity]; if (s) return s;              // 1) severity
+      const c = (effR[a.effort] ?? 9) - (effR[b.effort] ?? 9); if (c) return c;     // 2) complexity (effort)
+      const da = EST[a.id].d, db = EST[b.id].d;                                     // 3) estimation (larger first)
+      return (db[0] + db[1]) - (da[0] + da[1]);
+    })
+    .map(f => { const e = EST[f.id]; return { id: f.id, severity: f.severity, component: f.component, est: rangeStr(e.d, lang), conf: CONF[e.conf][lang], group: GROUPS[e.g][lang], title: f.title, reason: e[lang], complexity: f.effort, status: f.fixStatus }; });
+  // "Visited but deferred" = triaged, still Open, whose fix note is flagged DEFERRED.
+  const deferred = REPORT_DATA[lang].findings
+    .filter(f => f.fixStatus === 'Open' && /^\s*DEFERRED/i.test(f.fixNote || ''))
+    .sort((a, b) => {
+      const s = sevR[a.severity] - sevR[b.severity]; if (s) return s;              // 1) severity
+      const c = (effR[a.effort] ?? 9) - (effR[b.effort] ?? 9); if (c) return c;     // 2) complexity (effort)
+      const da = EST[a.id].d, db = EST[b.id].d;                                     // 3) estimation (larger first)
+      return (db[0] + db[1]) - (da[0] + da[1]);
+    })
+    .map(f => { const e = EST[f.id];
+      const raw = (f.fixNote || '').replace(/^\s*DEFERRED\s*(\([^)]*\))?\s*[—\-:]*\s*/i, '').trim();  // drop the leading "DEFERRED (…) —" marker
+      const reason = raw.length > 240 ? raw.slice(0, 240).replace(/\s+\S*$/, '') + '…' : raw;
+      return { id: f.id, severity: f.severity, component: f.component, est: rangeStr(e.d, lang), group: GROUPS[e.g][lang], title: f.title, date: f.fixDate || '', reason }; });
   REPORT_DATA[lang].estSummary = {
-    bigTasks, bigTasksNote: t.bigNote, devopsNote: t.devNote, note: t.note, cards: t.cards,
+    bigTasks, bigTasksNote: t.bigNote, deferred, deferredNote: t.deferredNote, devopsNote: t.devNote, note: t.note, cards: t.cards,
     tables: [
       { title: t.tComp, head: t.head, rows: t.comp.map(r => ({ cells: [r[0], String(r[1].n), dr(r[1])] })).concat([{ total: true, cells: [t.totalLabel, String(A.all.n), dr(A.all)] }]) },
       { title: t.tSev, head: t.head, rows: t.sev.map(r => ({ cells: [r[0], String(r[1].n), dr(r[1])] })).concat([{ total: true, cells: [t.totalLabel, String(A.all.n), dr(A.all)] }]) },

@@ -42,8 +42,16 @@
   .summary-text{font-size:15px; color:#334155}
   /* sections */
   section{margin:34px 0}
-  h2.sec{font-size:20px; font-weight:800; margin:0 0 16px; padding-bottom:10px; border-bottom:2px solid var(--line); display:flex; align-items:center; gap:10px}
-  h2.sec .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+  .sec{font-size:20px; font-weight:800; margin:0 0 16px; padding-bottom:10px; border-bottom:2px solid var(--line); display:flex; align-items:center; gap:10px}
+  .sec .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+  /* collapsible review sections (bigtasks / deferred / devops) — collapsed by default */
+  details.collapse{margin:16px 0; border:1px solid var(--line); border-radius:10px; padding:0 16px; background:var(--soft)}
+  details.collapse>summary.sec{cursor:pointer; margin:0; padding:14px 2px; border-bottom:none; list-style:none}
+  details.collapse>summary.sec::-webkit-details-marker{display:none}
+  details.collapse>summary.sec::after{content:"\25B8"; margin-left:auto; color:var(--accent); font-size:18px; line-height:1; transition:transform .15s ease}
+  details.collapse[open]>summary.sec{border-bottom:2px solid var(--line); margin-bottom:14px}
+  details.collapse[open]>summary.sec::after{transform:rotate(90deg)}
+  details.collapse>*:last-child{margin-bottom:16px}
   /* severity stat cards */
   .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}
   @media(max-width:780px){.stats{grid-template-columns:repeat(2,1fr)}}
@@ -143,6 +151,9 @@
   .estsum-tables td.tr,.estsum-tables th.tr{text-align:right}
   .estsum-tables tr.totrow td{font-weight:800; border-top:2px solid var(--line)}
   .bigtask{background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:10px; padding:13px 16px; margin-bottom:10px}
+  .bigtask.bt-done{border-left-color:#22c55e; background:#f6fef9; opacity:.85}
+  .bigtask.bt-done .bt-title{text-decoration:line-through; text-decoration-color:#94a3b8}
+  .bigtask.bt-deferred{border-left-color:#f59e0b; background:#fffdf5}
   .bigtask .bt-head{display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:5px}
   .bigtask a.bt-id{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:700; color:var(--accent); text-decoration:none}
   .bigtask a.bt-id:hover{text-decoration:underline}
@@ -152,6 +163,7 @@
   .bigtask .bt-reason{color:#334155; font-size:13.5px; margin:0}
   .fixbadge{display:inline-block; border-radius:6px; padding:2px 9px; font-size:11.5px; font-weight:800; letter-spacing:.02em}
   .fix-Fixed{background:#dcfce7; color:#166534; border:1px solid #86efac}
+  .fix-Deferred{background:#fef3c7; color:#92400e; border:1px solid #fcd34d}
   .fix-InProgress{background:#fef9c3; color:#854d0e; border:1px solid #fde047}
   .finding.is-fixed{opacity:.72}
   .finding.is-fixed .ftitle{text-decoration:line-through; text-decoration-color:#94a3b8}
@@ -230,11 +242,29 @@
   </section>
 
   <!-- tasks over 1 day -->
-  <section id="sec-bigtasks">
-    <h2 class="sec"><span class="dot"></span><span id="ui-bigtasks">Tasks Over 1 Day (for manual review)</span></h2>
+  <!-- manual-review sections: grouped together, collapsed by default, click to expand -->
+  <details id="sec-bigtasks" class="collapse">
+    <summary class="sec"><span class="dot"></span><span id="ui-bigtasks">Tasks Over 1 Day (for manual review)</span></summary>
     <p class="estsum-note" id="r-bigtasks-note"></p>
     <div id="r-bigtasks"></div>
-  </section>
+  </details>
+
+  <details id="sec-deferred" class="collapse">
+    <summary class="sec"><span class="dot"></span><span id="ui-deferred">Visited — Implementation Deferred</span></summary>
+    <p class="estsum-note" id="r-deferred-note"></p>
+    <div id="r-deferred"></div>
+  </details>
+
+  <details id="sec-devops" class="collapse">
+    <summary class="sec"><span class="dot"></span><span id="ui-devops">DevOps / Non-Code Backlog</span></summary>
+    <p class="estsum-note" id="r-devops-note"></p>
+    <table class="devops-tbl">
+      <thead><tr>
+        <th id="ui-dv-finding">Finding</th><th id="ui-dv-status">Code fix</th><th id="ui-dv-task">Non-code task (DevOps / infra / policy)</th>
+      </tr></thead>
+      <tbody id="r-devops"></tbody>
+    </table>
+  </details>
 
   <!-- SOC2 matrix -->
   <section>
@@ -285,18 +315,6 @@
     <div id="r-findings"></div>
   </section>
 
-  <!-- DevOps / non-code backlog -->
-  <section id="sec-devops">
-    <h2 class="sec"><span class="dot"></span><span id="ui-devops">DevOps / Non-Code Backlog</span></h2>
-    <p class="estsum-note" id="r-devops-note"></p>
-    <table class="devops-tbl">
-      <thead><tr>
-        <th id="ui-dv-finding">Finding</th><th id="ui-dv-status">Code fix</th><th id="ui-dv-task">Non-code task (DevOps / infra / policy)</th>
-      </tr></thead>
-      <tbody id="r-devops"></tbody>
-    </table>
-  </section>
-
   <!-- roadmap -->
   <section>
     <h2 class="sec"><span class="dot"></span><span id="ui-roadmap">Remediation Roadmap</span></h2>
@@ -322,7 +340,7 @@ let LANG = "%%DEFAULT_LANG%%";
 const UI = {
   en:{ eyebrow:"Security & Compliance Assessment", generated:"Generated", scope:"Scope", exec:"Executive Summary",
     rating:"Readiness Rating", risk:"Overall Risk", sevdist:"Findings by Severity", matrix:"SOC 2 Trust Services Criteria Coverage",
-    estsum:"Code-Change Effort — Estimate Summary", bigtasks:"Tasks Over 1 Day (for manual review)",
+    estsum:"Code-Change Effort — Estimate Summary", bigtasks:"Tasks Over 1 Day (for manual review)", deferred:"Visited — Implementation Deferred",
     criteria:"Criteria", name:"Name", status:"Status", notes:"Notes", strengths:"Existing Strengths / Positive Controls",
     findings:"Detailed Findings", fsev:"Severity", fcomp:"Component", ftscc:"TSC Criteria", fcc:"Control Coverage", fstatus:"Status", roadmap:"Remediation Roadmap", method:"Methodology",
     devops:"DevOps / Non-Code Backlog", dvFinding:"Finding", dvStatus:"Code fix", dvTask:"Non-code task (DevOps / infra / policy)",
@@ -335,7 +353,7 @@ const UI = {
     shown:function(n,t){return n+" of "+t+" findings shown";} },
   zh:{ eyebrow:"安全与合规评估", generated:"生成时间", scope:"评估范围", exec:"执行摘要",
     rating:"就绪度评级", risk:"整体风险", sevdist:"按严重程度分布", matrix:"SOC 2 信任服务标准覆盖情况",
-    estsum:"代码改动工时 — 估算汇总", bigtasks:"超过 1 天的任务（重点审阅）",
+    estsum:"代码改动工时 — 估算汇总", bigtasks:"超过 1 天的任务（重点审阅）", deferred:"已评估 — 推迟实现",
     criteria:"标准", name:"名称", status:"状态", notes:"说明", strengths:"现有优势 / 已具备的安全控制",
     findings:"详细问题清单", fsev:"严重程度", fcomp:"组件", ftscc:"信任服务标准 (TSC)", fcc:"控制项覆盖", fstatus:"状态", roadmap:"整改路线图", method:"评估方法",
     devops:"DevOps / 非代码待办", dvFinding:"问题", dvStatus:"代码修复", dvTask:"非代码任务（DevOps / 基础设施 / 策略）",
@@ -370,7 +388,7 @@ function renderStatic(){
   document.getElementById("langToggle").textContent = u.toggle;
   setText("ui-eyebrow",u.eyebrow); setText("ui-generated",u.generated); setText("ui-scope",u.scope);
   setText("ui-exec",u.exec); setText("ui-rating",u.rating); setText("ui-risk",u.risk); setText("ui-sevdist",u.sevdist);
-  setText("ui-estsum",u.estsum); setText("ui-bigtasks",u.bigtasks);
+  setText("ui-estsum",u.estsum); setText("ui-bigtasks",u.bigtasks); setText("ui-deferred",u.deferred);
   setText("ui-fstatus",u.fstatus); setText("ui-devops",u.devops);
   setText("ui-dv-finding",u.dvFinding); setText("ui-dv-status",u.dvStatus); setText("ui-dv-task",u.dvTask);
   setText("ui-matrix",u.matrix); setText("ui-criteria",u.criteria); setText("ui-name",u.name); setText("ui-status",u.status);
@@ -420,6 +438,7 @@ function renderStatic(){
   renderCoverage();
   renderEstSummary();
   renderBigTasks();
+  renderDeferred();
   renderDevops();
 
   // filters (preserve current selection by value)
@@ -486,12 +505,17 @@ function renderBigTasks(){
   if(sec) sec.style.display="";
   setText("r-bigtasks-note", (es&&es.bigTasksNote)||"");
   var L=u.lbl, html="";
+  var effL=(EFFORT_LABEL&&EFFORT_LABEL[LANG])||EFFORT_LABEL.en;
   list.forEach(function(b){
-    html+='<div class="bigtask">'+
+    var fx=b.status||"Open";
+    var fxBadge=(fx!=="Open")?'<span class="fixbadge '+(FIX_CLASS[fx]||"")+'">'+esc((u.fix&&u.fix[fx])||fx)+'</span>':'';
+    html+='<div class="bigtask'+(fx==="Fixed"?" bt-done":"")+'">'+
       '<div class="bt-head">'+
         '<a class="bt-id" href="#fc-'+esc(b.id)+'" onclick="openFinding(\''+esc(b.id)+'\')">'+esc(b.id)+' &#8594;</a>'+
-        '<span class="bt-est">'+esc(b.est)+'</span>'+
+        fxBadge+
         '<span class="badge b-'+esc(b.severity)+'">'+esc(u.sev[b.severity]||b.severity)+'</span>'+
+        '<span class="bt-tag">'+esc(L.effort)+': '+esc((effL&&effL[b.complexity])||b.complexity)+'</span>'+
+        '<span class="bt-est">'+esc(b.est)+'</span>'+
         '<span class="bt-tag">'+esc(b.component)+'</span>'+
         '<span class="bt-tag">'+esc(L.estConf)+': '+esc(b.conf)+'</span>'+
         '<span class="bt-tag">'+esc(b.group)+'</span>'+
@@ -501,6 +525,33 @@ function renderBigTasks(){
     '</div>';
   });
   document.getElementById("r-bigtasks").innerHTML=html;
+}
+
+function renderDeferred(){
+  var u=U(), d=D();
+  var es=d.estSummary;
+  var sec=document.getElementById("sec-deferred");
+  var list=(es&&es.deferred)||[];
+  if(!list.length){ if(sec) sec.style.display="none"; return; }
+  if(sec) sec.style.display="";
+  setText("r-deferred-note", (es&&es.deferredNote)||"");
+  var html="";
+  list.forEach(function(b){
+    html+='<div class="bigtask bt-deferred">'+
+      '<div class="bt-head">'+
+        '<a class="bt-id" href="#fc-'+esc(b.id)+'" onclick="openFinding(\''+esc(b.id)+'\')">'+esc(b.id)+' &#8594;</a>'+
+        '<span class="fixbadge fix-Deferred">'+esc(u.deferred)+'</span>'+
+        '<span class="badge b-'+esc(b.severity)+'">'+esc(u.sev[b.severity]||b.severity)+'</span>'+
+        '<span class="bt-est">'+esc(b.est)+'</span>'+
+        '<span class="bt-tag">'+esc(b.component)+'</span>'+
+        (b.date?'<span class="bt-tag">'+esc(b.date)+'</span>':'')+
+        '<span class="bt-tag">'+esc(b.group)+'</span>'+
+      '</div>'+
+      '<div class="bt-title">'+esc(b.title)+'</div>'+
+      '<p class="bt-reason">'+esc(b.reason)+'</p>'+
+    '</div>';
+  });
+  document.getElementById("r-deferred").innerHTML=html;
 }
 
 function openFinding(id){ var el=document.getElementById("fc-"+id); if(el) el.classList.add("open"); }
